@@ -1,0 +1,44 @@
+---
+import '../styles/global.css';
+interface Props { title: string; description?: string; }
+const { title, description = 'クオンツ取引で相場を予測し、仮想で売買した結果を、そのまま公開しています。' } = Astro.props;
+const path = Astro.url.pathname;
+const nav = [
+  ['/', '実況'],
+  ['/record/', '記録'],
+  ['/method/', 'やり方'],
+  ['/posts/', '手記'],
+  ['/about/', 'この記録について'],
+];
+---
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <header class="site">
+      <div class="wrap">
+        <a class="brand" href="/">クオンツ実況</a>
+        <nav>
+          {nav.map(([href, label]) => (
+            <a href={href} aria-current={path === href ? 'page' : undefined}>{label}</a>
+          ))}
+        </nav>
+      </div>
+    </header>
+    <main><div class="wrap"><slot /></div></main>
+    <footer class="site">
+      <div class="wrap">
+        <p>この記録は、投資の助言ではありません。売買を勧めるものでもありません。書いてあるのは、私たちが自分の仮説を試して、その結果を数えたものだけです。</p>
+        <p>株式会社ドラフト ／ <a href="/about/">この記録について</a></p>
+      </div>
+    </footer>
+  </body>
+</html>

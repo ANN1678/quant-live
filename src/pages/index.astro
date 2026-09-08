@@ -1,0 +1,157 @@
+---
+import Base from '../layouts/Base.astro';
+import Spark from '../components/Spark.astro';
+import { summary, market, backtest, results, DIRECTION_LABEL, PAIR_LABEL, jst, pct, yen } from '../lib/data';
+
+const gate = summary?.gate ?? null;
+const pred = summary?.predictions?.all ?? null;
+const trade = summary?.trading?.all ?? null;
+const pairs = Object.entries(market?.pairs ?? {}) as [string, any][];
+const open = pairs.map(([k, v]) => v.position).filter(Boolean);
+const recent = [...results].sort((a, b) => b.target_t - a.target_t).slice(0, 12);
+const progress = gate?.required_trades ? Math.min(100, (gate.trades / gate.required_trades) * 100) : 0;
+---
+<Base title="クオンツ実況｜相場を予測して、仮想で売買した結果を全部出す">
+  <h1>相場を予測して、仮想で売買しています。</h1>
+  <p class="lead">当たった回も外した回も、そのまま出します。いまは実際のお金を動かしていません。何を満たしたら動かすのかは、下に数字で書いてあります。</p>
+
+  <h2>実際のお金を出す条件</h2>
+  <div class="card pad-lg">
+    <p style="margin-bottom:16px">1回あたりの平均損益が、手数料を引いたあとでプラスになること。そしてその平均を、偶然では説明できない件数で示すこと。的中率では決めません。このやり方は外すほうが多くても、勝ったときの値幅が大きければ増えるからです。</p>
+    <div class="grid c3">
+      <div class="stat">
+        <div class="k">1回あたりの平均損益</div>
+        <div class={`v ${gate?.avg_net_pct > 0 ? 'up' : gate?.avg_net_pct < 0 ? 'down' : 'flat'}`}>
+          {gate?.avg_net_pct === null || gate?.avg_net_pct === undefined ? '—' : pct(gate.avg_net_pct, 3)}
+        </div>
+        <div class="n">手数料とすべりを引いた後</div>
+      </div>
+      <div class="stat">
+        <div class="k">積み上がった売買</div>
+        <div class="v">{gate?.trades ?? 0}<span class="muted" style="font-size:15px"> 件</span></div>
+        <div class="n">1銘柄1玉・72時間で手仕舞う</div>
+      </div>
+      <div class="stat">
+        <div class="k">必要な件数</div>
+        <div class="v">{gate?.required_trades ?? '—'}<span class="muted" style="font-size:15px"> 件</span></div>
+        <div class="n">(1.96 × ばらつき ÷ 平均) の2乗</div>
+      </div>
+    </div>
+    <div class="bar"><i style={`width:${progress}%`}></i></div>
+    <p class="muted" style="margin:10px 0 0;font-size:13px">
+      平均が小さいほど、必要な件数は急に増えます。わずかなプラスでは、何年数えても決められません。
+    </p>
+  </div>
+
+  <h2>いま持っている玉</h2>
+  {open.length === 0 ? (
+    <div class="card"><p class="muted" style="margin:0">いまは何も持っていません。次の判断は、次の1時間足が終わったときに出します。</p></div>
+  ) : (
+    <div class="grid c2">
+      {open.map((p: any) => (
+        <div class="card">
+          <div class="stat">
+            <div class="k">{PAIR_LABEL[p.pair] ?? p.pair}　<span class={`tag ${p.direction}`}>{DIRECTION_LABEL[p.direction]}</span></div>
+            <div class={`v ${p.unrealized_pct > 0 ? 'up' : p.unrealized_pct < 0 ? 'down' : 'flat'}`}>{pct(p.unrealized_pct, 2)}</div>
+            <div class="n">{yen(p.entry)}円で建て、{jst(p.close_at)}に手仕舞います</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+
+  <h2>いまの相場</h2>
+  <div class="grid c2">
+    {pairs.map(([key, v]) => (
+      <div class="card">
+        <div class="stat">
+          <div class="k">{PAIR_LABEL[key] ?? key}</div>
+          <div class="v">{yen(v.ticker.last)}<span class="muted" style="font-size:14px"> 円</span></div>
+          <div class="n">24時間で {pct(((v.ticker.last - v.ticker.open) / v.ticker.open) * 100)}</div>
+        </div>
+        <Spark points={v.candles.map((c: any) => c.c)} color={v.ticker.last >= v.ticker.open ? '#35c08a' : '#e2585f'} />
+      </div>
+    ))}
+  </div>
+
+  <h2>いまの成績</h2>
+  <div class="grid c4">
+    <div class="card stat">
+      <div class="k">予測の的中率</div>
+      <div class="v">{pred?.hit_rate === null || pred?.hit_rate === undefined ? '—' : `${pred.hit_rate}%`}</div>
+      <div class="n">判定した {pred?.judged ?? 0} 件のうち {pred?.hits ?? 0} 件</div>
+    </div>
+    <div class="card stat">
+      <div class="k">売買の勝率</div>
+      <div class="v">{trade?.win_rate === null || trade?.win_rate === undefined ? '—' : `${trade.win_rate}%`}</div>
+      <div class="n">{trade?.trades ?? 0} 件のうち {trade?.wins ?? 0} 件</div>
+    </div>
+    <div class="card stat">
+      <div class="k">勝ちと負けの比</div>
+      <div class="v">{trade?.payoff ?? '—'}</div>
+      <div class="n">勝ち {pct(trade?.win_avg_pct)} ／ 負け {pct(trade?.loss_avg_pct)}</div>
+    </div>
+    <div class="card stat">
+      <div class="k">仮想の資金</div>
+      <div class="v">{yen(summary?.capital?.now)}<span class="muted" style="font-size:14px"> 円</span></div>
+      <div class="n">{yen(summary?.capital?.start)}円から {pct(summary?.capital?.change_pct)}</div>
+    </div>
+  </div>
+
+  <h2>直近の判定</h2>
+  {recent.length === 0 ? (
+    <div class="card"><p class="muted" style="margin:0">まだ判定が終わった予測はありません。予測は72時間後に判定します。最初の判定は、記録を始めてから3日後に出ます。</p></div>
+  ) : (
+    <div class="card scroll">
+      <table>
+        <thead><tr><th>判定した時刻</th><th>銘柄</th><th>予測</th><th>建てた値</th><th>判定の値</th><th>動き</th><th>結果</th></tr></thead>
+        <tbody>
+          {recent.map((r: any) => (
+            <tr>
+              <td>{jst(r.target_at)}</td>
+              <td>{PAIR_LABEL[r.pair] ?? r.pair}</td>
+              <td><span class={`tag ${r.direction}`}>{DIRECTION_LABEL[r.direction]}</span></td>
+              <td class="num">{yen(r.base_price)}</td>
+              <td class="num">{yen(r.target_price)}</td>
+              <td class="num">{pct(r.move_pct)}</td>
+              <td>{r.hit === null ? '—' : r.hit ? '的中' : '外れ'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+  <p style="margin-top:14px"><a href="/record/">記録をすべて見る</a></p>
+
+  {backtest && (
+    <>
+      <h2>過去に当てはめた結果</h2>
+      <div class="note warn">
+        ここから下は<strong>事前に公開した予測ではありません。</strong>過去{backtest.days}日の足に、同じやり方を後から通しただけです。上の数字とは別のものとして読んでください。
+      </div>
+      <div class="card scroll">
+        <table>
+          <thead><tr><th>銘柄</th><th>予測</th><th>的中率</th><th>売買</th><th>1回あたり平均</th><th>必要件数</th><th>最大下落</th></tr></thead>
+          <tbody>
+            {Object.values(backtest.pairs).map((p: any) => (
+              <tr>
+                <td>{PAIR_LABEL[p.pair] ?? p.pair}</td>
+                <td class="num">{p.judged}</td>
+                <td class="num">{p.hit_rate}%</td>
+                <td class="num">{p.trades}</td>
+                <td class="num">{pct(p.avg_net_pct, 3)}</td>
+                <td class="num">{p.required_trades ?? '—'}</td>
+                <td class="num">{p.max_drawdown_pct}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="muted" style="font-size:13px;margin-top:10px">
+        必要件数が千を超えています。いまのやり方の優位性は、あったとしても小さすぎて、月10件の売買では10年かけても証明できません。ここが次に解く問題です。
+      </p>
+    </>
+  )}
+
+  <p class="muted" style="margin-top:34px;font-size:13px">最後に更新したのは {jst(summary?.generated_at)} です。1時間ごとに書き換えています。</p>
+</Base>

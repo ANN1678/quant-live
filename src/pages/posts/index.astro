@@ -1,0 +1,19 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+const posts = (await getCollection('posts', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const fmt = (d: Date) => new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'long', day: 'numeric' }).format(d);
+---
+<Base title="手記｜クオンツ実況">
+  <h1>手記</h1>
+  <p class="lead">数字だけでは残らないことを書きます。何を試して、何が外れて、次に何を変えるか。</p>
+  {posts.length === 0 && <div class="card"><p class="muted" style="margin:0">まだ書いていません。</p></div>}
+  {posts.map((p) => (
+    <div class="card" style="margin-bottom:12px">
+      <div class="muted" style="font-size:12.5px">{fmt(p.data.date)}</div>
+      <h3 style="margin:4px 0 6px;color:var(--ink);font-size:17px"><a href={`/posts/${p.id}/`}>{p.data.title}</a></h3>
+      {p.data.summary && <p class="muted" style="margin:0;font-size:13.5px">{p.data.summary}</p>}
+    </div>
+  ))}
+</Base>

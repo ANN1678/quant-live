@@ -1,0 +1,21 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const fmt = (d: Date) => new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'long', day: 'numeric' }).format(d);
+---
+<Base title={`${post.data.title}｜クオンツ実況`} description={post.data.summary}>
+  <article>
+    <div class="muted" style="font-size:12.5px">{fmt(post.data.date)}</div>
+    <h1>{post.data.title}</h1>
+    <Content />
+  </article>
+  <p style="margin-top:40px"><a href="/posts/">手記の一覧へ</a></p>
+</Base>

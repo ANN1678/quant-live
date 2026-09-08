@@ -1,0 +1,135 @@
+{
+  "assumptions": {
+    "fee_pct": 0.12,
+    "position_pct": 10.0,
+    "round_trip_cost_pct": 0.34,
+    "slippage_pct": 0.05
+  },
+  "capital": {
+    "change_pct": 0.0,
+    "max_drawdown_pct": 0.0,
+    "now": 1000000,
+    "start": 1000000
+  },
+  "gate": {
+    "avg_net_pct": null,
+    "cleared": false,
+    "required_trades": null,
+    "rule": "1回あたりの平均損益が、手数料を引いた後でプラスであること。それを偶然では説明できない件数で示すこと。",
+    "trades": 0
+  },
+  "generated_at": "2026-09-08T20:25:50+09:00",
+  "horizon_hours": 72,
+  "made": 2,
+  "model": "ema-cross-v1",
+  "open_positions": [
+    {
+      "close_at": "2026-09-11T19:00:00+09:00",
+      "close_t": 1789120800000,
+      "confidence": 0.85,
+      "direction": "down",
+      "entry": 12131953.0,
+      "id": "btc_jpy-1788861600000",
+      "model": "ema-cross-v1",
+      "open_at": "2026-09-08T19:00:00+09:00",
+      "open_t": 1788861600000,
+      "pair": "btc_jpy",
+      "unrealized_pct": -0.22
+    },
+    {
+      "close_at": "2026-09-11T19:00:00+09:00",
+      "close_t": 1789120800000,
+      "confidence": 0.7303,
+      "direction": "down",
+      "entry": 383137.0,
+      "id": "eth_jpy-1788861600000",
+      "model": "ema-cross-v1",
+      "open_at": "2026-09-08T19:00:00+09:00",
+      "open_t": 1788861600000,
+      "pair": "eth_jpy",
+      "unrealized_pct": -0.135
+    }
+  ],
+  "pending": [
+    {
+      "base_price": 12131953.0,
+      "confidence": 0.85,
+      "direction": "down",
+      "id": "btc_jpy-1788861600000",
+      "made_at": "2026-09-08T20:25:47+09:00",
+      "model": "ema-cross-v1",
+      "pair": "btc_jpy",
+      "target_at": "2026-09-11T19:00:00+09:00"
+    },
+    {
+      "base_price": 383137.0,
+      "confidence": 0.7303,
+      "direction": "down",
+      "id": "eth_jpy-1788861600000",
+      "made_at": "2026-09-08T20:25:47+09:00",
+      "model": "ema-cross-v1",
+      "pair": "eth_jpy",
+      "target_at": "2026-09-11T19:00:00+09:00"
+    }
+  ],
+  "predictions": {
+    "all": {
+      "hit_rate": null,
+      "hits": 0,
+      "judged": 0,
+      "passed": 0
+    },
+    "last_30d": {
+      "hit_rate": null,
+      "hits": 0,
+      "judged": 0,
+      "passed": 0
+    },
+    "last_7d": {
+      "hit_rate": null,
+      "hits": 0,
+      "judged": 0,
+      "passed": 0
+    },
+    "per_pair": {}
+  },
+  "trading": {
+    "all": {
+      "avg_net_pct": null,
+      "enough": false,
+      "loss_avg_pct": null,
+      "payoff": null,
+      "required_trades": null,
+      "sd_pct": null,
+      "trades": 0,
+      "win_avg_pct": null,
+      "win_rate": null,
+      "wins": 0
+    },
+    "last_30d": {
+      "avg_net_pct": null,
+      "enough": false,
+      "loss_avg_pct": null,
+      "payoff": null,
+      "required_trades": null,
+      "sd_pct": null,
+      "trades": 0,
+      "win_avg_pct": null,
+      "win_rate": null,
+      "wins": 0
+    },
+    "last_7d": {
+      "avg_net_pct": null,
+      "enough": false,
+      "loss_avg_pct": null,
+      "payoff": null,
+      "required_trades": null,
+      "sd_pct": null,
+      "trades": 0,
+      "win_avg_pct": null,
+      "win_rate": null,
+      "wins": 0
+    },
+    "per_pair": {}
+  }
+}
