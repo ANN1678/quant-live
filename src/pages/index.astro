@@ -93,7 +93,7 @@ const progress = gate?.required_trades ? Math.min(100, (gate.trades / gate.requi
     </div>
     <div class="card stat">
       <div class="k">仮想の資金</div>
-      <div class="v">{yen(summary?.capital?.now)}<span class="muted" style="font-size:14px"> 円</span></div>
+      <div class="v long">{yen(summary?.capital?.now)}<span class="muted" style="font-size:13px"> 円</span></div>
       <div class="n">{yen(summary?.capital?.start)}円から {pct(summary?.capital?.change_pct)}</div>
     </div>
   </div>

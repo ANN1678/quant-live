@@ -41,7 +41,29 @@ header.site {
 }
 header.site .wrap { display: flex; align-items: center; gap: 24px; height: 58px; }
 header.site .brand { font-weight: 700; letter-spacing: .02em; text-decoration: none; }
-header.site nav { display: flex; gap: 18px; margin-left: auto; font-size: 13.5px; }
+header.site nav {
+  display: flex; gap: 18px; margin-left: auto; font-size: 13.5px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; min-width: 0;
+}
+header.site nav::-webkit-scrollbar { display: none; }
+header.site nav a { white-space: nowrap; }
+/* 狭い画面ではナビを2段目へ落とす。横スクロールにすると末尾の項目が隠れて気づかれない。 */
+@media (max-width: 560px) {
+  header.site { position: static; }
+  header.site .wrap {
+    height: auto; padding: 11px 14px 9px; gap: 6px;
+    flex-wrap: wrap; align-items: flex-start;
+  }
+  header.site .brand { flex: 0 0 100%; }
+  header.site nav {
+    margin-left: 0; flex: 0 0 100%; gap: 15px; font-size: 12.5px;
+    overflow: visible; flex-wrap: wrap; row-gap: 2px;
+  }
+  .wrap { padding: 0 14px; }
+  h1 { font-size: 22px; }
+  .stat .v { font-size: 23px; }
+}
 header.site nav a { color: var(--ink-dim); text-decoration: none; }
 header.site nav a[aria-current="page"] { color: var(--ink); }
 
@@ -71,7 +93,8 @@ p { margin: 0 0 14px; }
 .card.pad-lg { padding: 22px 24px; }
 
 .stat .k { font-size: 12px; color: var(--ink-faint); letter-spacing: .04em; }
-.stat .v { font-family: var(--mono); font-size: 27px; line-height: 1.25; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.stat .v { font-family: var(--mono); font-size: 27px; line-height: 1.25; margin-top: 4px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stat .v.long { font-size: 21px; }
 .stat .n { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
 .v.up { color: var(--up); } .v.down { color: var(--down); } .v.flat { color: var(--flat); }
 
