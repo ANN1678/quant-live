@@ -1,15 +1,28 @@
 ---
 import Base from '../layouts/Base.astro';
 ---
-<Base title="このページはありません｜クオンツ実況">
-  <h1>このページはありません</h1>
-  <p class="lead">住所が変わったか、もともと無かったページです。</p>
-  <div class="card">
-    <p style="margin:0 0 10px">探しものは、たぶんこのどれかです。</p>
-    <p style="margin:0"><a href="/">実況</a>　／　<a href="/record/">記録</a>　／　<a href="/method/">やり方</a>　／　<a href="/posts/">手記</a></p>
+<Base
+  title="このページはありません｜クオンツ実況"
+  description="お探しのページは見つかりませんでした。"
+  noindex={true}
+>
+  <div class="hero">
+    <span class="eyebrow"><span class="n">404</span></span>
+    <h1>このページはありません</h1>
+    <p class="lead">住所が変わったか、もともと無かったページです。</p>
   </div>
-  <p class="muted" style="margin-top:24px;font-size:13.5px">
-    株式会社ANNのAIコンサルティングをお探しでしたら、事業は株式会社ドラフトへ移りました。
-    <a href="https://corp.clubd.co.jp/">corp.clubd.co.jp</a> にあります。
-  </p>
+
+  <section class="section">
+    <span class="eyebrow">探しものは、たぶんこのどれかです</span>
+    <div class="rows">
+      <div><a class="t" href="/">実況</a><p class="fine" style="margin:2px 0 0">いまの予測と、実際のお金を出す条件</p></div>
+      <div><a class="t" href="/record/">記録</a><p class="fine" style="margin:2px 0 0">出した予測と結果の全件</p></div>
+      <div><a class="t" href="/method/">やり方</a><p class="fine" style="margin:2px 0 0">予測モデルと約定の前提</p></div>
+      <div><a class="t" href="/posts/">手記</a><p class="fine" style="margin:2px 0 0">何を試して、何が外れたか</p></div>
+    </div>
+    <p class="fine" style="margin-top:28px">
+      株式会社ANNのAIコンサルティングをお探しでしたら、その事業は株式会社ドラフトへ移りました。
+      <a href="https://corp.clubd.co.jp/">corp.clubd.co.jp</a> にあります。
+    </p>
+  </section>
 </Base>

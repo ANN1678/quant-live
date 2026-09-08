@@ -1,130 +1,295 @@
+/* クオンツ実況のデザインの正本。
+ *
+ * トンマナ＝block.xyz（Economic Index）を参照した。向こうの実測値を土台にしている。
+ *   白地 #fff／墨 #000／本文 #191919／灰 #5f5e5a／罫 rgb(0 0 0 / 12%)／面 #f5f5f5
+ *   見出しの字送り -.03em・行送り 1.0〜1.02／札は10〜12pxのモノスペースに .1em の字送り
+ *   数字の大見出しは行送り .9・字送り -.06em／点の地 #d9d9d6／12列・溝10px
+ * そこへ ANN の墨 #0A0A0A と紙 #EDEDEB を混ぜてある。
+ *
+ * ⚠ 上下の色は緑と赤ではなく青と橙にした。
+ *    日本の板は上げが赤・米国は上げが緑で、逆に読まれる。青と橙なら取り違えようがなく、
+ *    赤緑の色覚でも分かれる。値には必ず符号か言葉（的中／外れ）を添えること。
+ */
+
 :root {
-  --bg: #0d1014;
-  --panel: #151a21;
-  --panel-2: #1b222b;
-  --line: #262f3a;
-  --ink: #e6ebf1;
-  --ink-dim: #97a3b2;
-  --ink-faint: #64707e;
-  --up: #35c08a;
-  --down: #e2585f;
-  --flat: #7c8794;
-  --accent: #d9b34a;
-  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  --sans: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
-  color-scheme: dark;
+  --paper: #ffffff;
+  --panel: #f4f4f2;
+  --panel-2: #ebebe7;
+  --ink: #0a0a0a;
+  --body: #191917;
+  --gray: #5f5e5a;
+  --faint: #6f6e68;
+  --rule: rgba(10, 10, 10, .13);
+  --rule-soft: rgba(10, 10, 10, .07);
+  --dot: #dcdcd8;
+
+  --up: #004bff;
+  --down: #c44603;
+  --flat: #6f6e68;
+  --mark: #ffe38a;
+
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --sans: "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+
+  --w: 1000px;
+  --frame: 24px;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
 
+html { -webkit-text-size-adjust: 100%; }
+
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--ink);
+  background: var(--paper);
+  color: var(--body);
   font-family: var(--sans);
-  font-size: 15px;
-  line-height: 1.85;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.9;
+  letter-spacing: .005em;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   word-break: auto-phrase;
+  overflow-wrap: anywhere;
 }
 
-a { color: var(--ink); text-decoration-color: var(--ink-faint); text-underline-offset: 3px; }
-a:hover { text-decoration-color: var(--accent); }
+a { color: inherit; text-decoration: underline; text-decoration-color: var(--rule); text-decoration-thickness: 1px; text-underline-offset: .25em; transition: text-decoration-color .15s; }
+a:hover { text-decoration-color: var(--ink); }
 
-.wrap { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+.wrap { max-width: var(--w); margin: 0 auto; padding: 0 var(--frame); }
 
+/* ── 点の地。block.xyz のドットグリッドにあたる ───────────────────────── */
+.dotfield {
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+  background-size: 21px 21px;
+  background-position: -1px -1px;
+}
+
+/* ── 頭 ─────────────────────────────────────────────────────────────── */
 header.site {
-  border-bottom: 1px solid var(--line);
-  background: rgba(13, 16, 20, 0.9);
-  backdrop-filter: blur(8px);
-  position: sticky; top: 0; z-index: 10;
+  position: sticky; top: 0; z-index: 20;
+  /* ⚠ backdrop-filter は使わない。まとめる処理で saturate(1.4)blur(10px) と詰められて
+     値が壊れ、丸ごと無効になった（2026-09-08 実測）。地は紙のまま塗り切る。 */
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
 }
-header.site .wrap { display: flex; align-items: center; gap: 24px; height: 58px; }
-header.site .brand { font-weight: 700; letter-spacing: .02em; text-decoration: none; }
-header.site nav {
-  display: flex; gap: 18px; margin-left: auto; font-size: 13.5px;
-  overflow-x: auto; -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; min-width: 0;
+header.site .wrap { display: flex; align-items: center; gap: 28px; height: 62px; }
+header.site .brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; color: var(--ink);
+  font-weight: 900; font-size: 16px; letter-spacing: -.01em;
+  white-space: nowrap;
 }
-header.site nav::-webkit-scrollbar { display: none; }
-header.site nav a { white-space: nowrap; }
-/* 狭い画面ではナビを2段目へ落とす。横スクロールにすると末尾の項目が隠れて気づかれない。 */
-@media (max-width: 560px) {
+header.site .brand svg { display: block; flex: none; }
+header.site .brand:hover { opacity: .62; }
+header.site nav { display: flex; gap: 22px; margin-left: auto; min-width: 0; }
+header.site nav a {
+  color: var(--gray); text-decoration: none;
+  font-size: 13px; letter-spacing: .01em; white-space: nowrap;
+  padding: 3px 0; border-bottom: 1px solid transparent;
+}
+header.site nav a:hover { color: var(--ink); }
+header.site nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--ink); }
+
+@media (max-width: 640px) {
+  :root { --frame: 18px; }
   header.site { position: static; }
-  header.site .wrap {
-    height: auto; padding: 11px 14px 9px; gap: 6px;
-    flex-wrap: wrap; align-items: flex-start;
-  }
+  header.site .wrap { height: auto; padding-top: 12px; padding-bottom: 10px; flex-wrap: wrap; gap: 8px; }
   header.site .brand { flex: 0 0 100%; }
-  header.site nav {
-    margin-left: 0; flex: 0 0 100%; gap: 15px; font-size: 12.5px;
-    overflow: visible; flex-wrap: wrap; row-gap: 2px;
-  }
-  .wrap { padding: 0 14px; }
-  h1 { font-size: 22px; }
-  .stat .v { font-size: 23px; }
-}
-header.site nav a { color: var(--ink-dim); text-decoration: none; }
-header.site nav a[aria-current="page"] { color: var(--ink); }
-
-main { padding: 34px 0 72px; }
-
-h1 { font-size: 26px; line-height: 1.5; margin: 0 0 6px; letter-spacing: .01em; }
-h2 { font-size: 18px; margin: 44px 0 12px; letter-spacing: .01em; }
-h3 { font-size: 15px; margin: 26px 0 8px; color: var(--ink-dim); }
-p { margin: 0 0 14px; }
-.lead { color: var(--ink-dim); margin-bottom: 30px; }
-
-.grid { display: grid; gap: 12px; }
-.grid.c2 { grid-template-columns: repeat(2, 1fr); }
-.grid.c3 { grid-template-columns: repeat(3, 1fr); }
-.grid.c4 { grid-template-columns: repeat(4, 1fr); }
-@media (max-width: 720px) {
-  .grid.c3, .grid.c4 { grid-template-columns: repeat(2, 1fr); }
-  .grid.c2 { grid-template-columns: 1fr; }
+  header.site nav { margin-left: 0; flex: 0 0 100%; flex-wrap: wrap; gap: 6px 16px; row-gap: 2px; font-size: 12.5px; }
 }
 
-.card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 16px 18px;
-}
-.card.pad-lg { padding: 22px 24px; }
+main { padding: 0 0 96px; }
 
-.stat .k { font-size: 12px; color: var(--ink-faint); letter-spacing: .04em; }
-.stat .v { font-family: var(--mono); font-size: 27px; line-height: 1.25; margin-top: 4px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.stat .v.long { font-size: 21px; }
-.stat .n { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+/* ── 字 ─────────────────────────────────────────────────────────────── */
+h1, h2, h3 { font-weight: 900; color: var(--ink); }
+
+h1, .display {
+  font-size: clamp(30px, 5.4vw, 52px);
+  line-height: 1.16;
+  letter-spacing: -.035em;
+  margin: 0 0 18px;
+}
+h2 {
+  font-size: clamp(20px, 2.6vw, 25px);
+  line-height: 1.35;
+  letter-spacing: -.025em;
+  margin: 0 0 16px;
+}
+h3 { font-size: 17px; line-height: 1.6; letter-spacing: -.015em; margin: 30px 0 8px; }
+p { margin: 0 0 16px; }
+strong { font-weight: 900; }
+
+.lead {
+  font-size: clamp(16px, 1.9vw, 18px);
+  line-height: 1.85;
+  color: var(--gray);
+  margin: 0 0 8px;
+}
+
+/* 見出しの上の小さな札。block.xyz の eyebrow */
+.eyebrow {
+  font-family: var(--mono); font-weight: 500;
+  font-size: 11px; letter-spacing: .17em; text-transform: uppercase;
+  color: var(--gray); margin: 0 0 12px; display: block;
+}
+.eyebrow .n { color: var(--ink); }
+
+/* 節。上に細い罫を引き、札・見出し・中身の順に落とす */
+.section { border-top: 1px solid var(--rule); margin-top: 68px; padding-top: 22px; }
+.section:first-of-type { margin-top: 0; }
+@media (max-width: 640px) { .section { margin-top: 48px; } }
+
+.hero { padding: 56px 0 12px; }
+@media (max-width: 640px) { .hero { padding: 34px 0 8px; } }
+
+/* ── 数の見せ方 ──────────────────────────────────────────────────────── */
+.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.readout {
+  font-family: var(--mono); font-weight: 500;
+  font-size: clamp(50px, 10.5vw, 96px);
+  line-height: .92; letter-spacing: -.05em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink); margin: 0;
+}
+.readout .unit { font-size: .3em; letter-spacing: 0; color: var(--gray); margin-left: .3em; }
+/* まだ数えられないとき。「—」を96pxで出すと黒い棒に見えるので、言葉に落とす */
+.readout.pending { font-size: clamp(20px, 2.8vw, 27px); line-height: 1.5; letter-spacing: -.02em; color: var(--gray); font-family: var(--sans); font-weight: 400; }
+
+/* 罫を溝で描く。折り返しても縦横の線がそろう */
+.stats {
+  display: grid; gap: 1px; background: var(--rule);
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+}
+.stats.c2 { grid-template-columns: repeat(2, 1fr); }
+.stats.c3 { grid-template-columns: repeat(3, 1fr); }
+.stats.c4 { grid-template-columns: repeat(4, 1fr); }
+.stats > * { background: var(--paper); padding: 18px 20px 20px; min-width: 0; }
+@media (max-width: 760px) {
+  .stats.c3, .stats.c4 { grid-template-columns: repeat(2, 1fr); }
+  .stats > * { padding: 15px 14px 17px; }
+}
+/* 2列は早めに1列へ落とす。値段は桁が多く、2列だと札と数字がぶつかる */
+@media (max-width: 520px) { .stats.c2 { grid-template-columns: 1fr; } }
+@media (max-width: 400px) { .stats.c3, .stats.c4 { grid-template-columns: 1fr; } }
+
+.stat .k {
+  font-family: var(--mono); font-weight: 500; font-size: 10.5px;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--gray);
+  line-height: 1.5;
+}
+.stat .kj { font-size: 12.5px; color: var(--gray); line-height: 1.5; letter-spacing: .02em; }
+.stat .v {
+  font-family: var(--mono); font-weight: 500;
+  font-size: clamp(24px, 3.4vw, 34px); line-height: 1.15; letter-spacing: -.035em;
+  font-variant-numeric: tabular-nums; color: var(--ink);
+  margin-top: 6px; white-space: nowrap;
+}
+.stat .v.long { font-size: clamp(19px, 2.6vw, 26px); }
+.stat .v .unit { font-size: .46em; letter-spacing: 0; color: var(--gray); margin-left: .25em; }
+.stat .n { font-size: 12.5px; line-height: 1.65; color: var(--gray); margin-top: 6px; }
 .v.up { color: var(--up); } .v.down { color: var(--down); } .v.flat { color: var(--flat); }
+/* まだ数字が無い枠。墨のまま大きく出すと棒に見えるので、小さく灰にして引く */
+.v .na, .readout .na {
+  color: var(--faint); font-family: var(--sans); font-weight: 400;
+  font-size: .48em; letter-spacing: .02em; vertical-align: .1em;
+}
 
-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-th, td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
-th { color: var(--ink-faint); font-weight: 500; font-size: 12px; letter-spacing: .03em; }
-th:first-child, td:first-child { text-align: left; }
-td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+/* ── 面 ─────────────────────────────────────────────────────────────── */
+.panel { background-color: var(--panel); border-radius: 12px; padding: 26px 28px 28px; }
+.panel .stats { background: var(--rule); border-color: var(--rule); }
+.panel .stats > * { background: var(--panel); }
+@media (max-width: 640px) { .panel { padding: 20px 16px 22px; border-radius: 10px; } }
 
-.tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--line); }
-.tag.up { color: var(--up); border-color: rgba(53,192,138,.35); }
-.tag.down { color: var(--down); border-color: rgba(226,88,95,.35); }
-.tag.none { color: var(--flat); }
+/* ── 進み具合 ────────────────────────────────────────────────────────── */
+.progress { height: 3px; background: var(--rule); margin: 22px 0 10px; overflow: hidden; }
+.progress > i { display: block; height: 100%; background: var(--ink); min-width: 2px; }
+.progress-ends { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; color: var(--gray); }
 
+/* ── 表 ─────────────────────────────────────────────────────────────── */
+.scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 calc(var(--frame) * -1); padding: 0 var(--frame); }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; line-height: 1.6; }
+thead th {
+  font-family: var(--mono); font-weight: 500; font-size: 10.5px;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--gray);
+  padding: 0 12px 9px; text-align: right; white-space: nowrap;
+  border-bottom: 1px solid var(--ink);
+}
+tbody td { padding: 11px 12px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--rule-soft); }
+tbody tr:last-child td { border-bottom: 1px solid var(--rule); }
+th:first-child, td:first-child { text-align: left; padding-left: 0; }
+th:last-child, td:last-child { padding-right: 0; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+td.up { color: var(--up); } td.down { color: var(--down); }
+tbody tr:hover td { background: var(--panel); }
+
+/* ── 札 ─────────────────────────────────────────────────────────────── */
+.tag {
+  display: inline-block; padding: 1px 9px; border-radius: 999px;
+  font-family: var(--mono); font-size: 11.5px; letter-spacing: .04em;
+  border: 1px solid var(--rule); color: var(--gray); white-space: nowrap;
+}
+.tag.up { color: var(--up); border-color: rgba(0, 75, 255, .3); }
+.tag.down { color: var(--down); border-color: rgba(196, 70, 3, .32); }
+.tag.none { color: var(--faint); }
+
+/* ── 注意書き ────────────────────────────────────────────────────────── */
 .note {
-  border-left: 2px solid var(--accent);
-  padding: 2px 0 2px 14px;
-  color: var(--ink-dim);
-  font-size: 13.5px;
-  margin: 18px 0;
+  border-left: 2px solid var(--ink); padding: 2px 0 2px 16px;
+  color: var(--gray); font-size: 14px; line-height: 1.8; margin: 20px 0;
 }
 .warn { border-left-color: var(--down); }
+.formula {
+  font-family: var(--mono); font-size: 13.5px; letter-spacing: .01em;
+  background: var(--panel); border-radius: 8px; padding: 14px 16px; color: var(--ink);
+  overflow-x: auto;
+}
+.hl { background: linear-gradient(transparent 62%, var(--mark) 62%); }
 
-footer.site { border-top: 1px solid var(--line); color: var(--ink-faint); font-size: 12.5px; padding: 26px 0 60px; }
-footer.site a { color: var(--ink-faint); }
+/* ── 一覧の項目（手記） ────────────────────────────────────────────────── */
+.rows { border-top: 1px solid var(--rule); }
+/* 節の罫のすぐ下に一覧が来ると線が2本並ぶ */
+.section > .rows:first-child { border-top: 0; }
+.rows > * { border-bottom: 1px solid var(--rule); padding: 22px 0; }
+.rows a.t { font-size: 19px; font-weight: 900; letter-spacing: -.02em; color: var(--ink); text-decoration: none; line-height: 1.5; }
+.rows a.t:hover { text-decoration: underline; text-underline-offset: .22em; }
+.rows time { font-family: var(--mono); font-size: 11.5px; letter-spacing: .1em; color: var(--gray); }
 
-.gate { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.bar { height: 6px; background: var(--panel-2); border-radius: 999px; overflow: hidden; margin-top: 10px; }
-.bar > i { display: block; height: 100%; background: var(--accent); }
+/* ── 記事本文 ────────────────────────────────────────────────────────── */
+.prose h2 { margin-top: 44px; }
+/* 節の札のすぐ下に来る見出しは、札から離さない */
+.section .eyebrow + h2, .section .eyebrow + h1 { margin-top: 0; }
+.prose table { margin: 4px 0 26px; max-width: 100%; }
+/* 手記の表は箱で包めない（記法から直に出る）ので、折り返して必ず収まるようにする。
+   包まないまま nowrap のままにすると、狭い画面で本文ごと横へはみ出す。 */
+.prose th, .prose td { white-space: normal; }
+/* 記事の本文は、上の導入から離しすぎない */
+.article-body { margin-top: 40px; padding-top: 26px; }
+.prose ul, .prose ol { padding-left: 1.4em; margin: 0 0 16px; }
+.prose li { margin-bottom: 6px; }
+.prose blockquote { margin: 20px 0; padding-left: 16px; border-left: 2px solid var(--rule); color: var(--gray); }
+.prose code { font-family: var(--mono); font-size: .9em; background: var(--panel); padding: .1em .4em; border-radius: 4px; }
+.prose pre { background: var(--panel); padding: 16px; border-radius: 8px; overflow-x: auto; }
+.prose pre code { background: none; padding: 0; }
+.prose img { max-width: 100%; height: auto; border-radius: 8px; }
+.prose hr { border: 0; border-top: 1px solid var(--rule); margin: 36px 0; }
 
-.muted { color: var(--ink-faint); }
-.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+/* ── 足 ─────────────────────────────────────────────────────────────── */
+footer.site { border-top: 1px solid var(--ink); padding: 44px 0 64px; }
+footer.site .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 28px; flex-wrap: wrap; }
+footer.site .fbrand { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 15px; color: var(--ink); letter-spacing: -.01em; }
+footer.site .fbrand svg { display: block; flex: none; }
+footer.site nav { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 13px; }
+footer.site nav a { color: var(--gray); text-decoration: none; }
+footer.site nav a:hover { color: var(--ink); }
+footer.site .fine { margin: 30px 0 0; font-size: 12.5px; line-height: 1.85; color: var(--gray); max-width: 660px; }
+footer.site .legal { margin: 18px 0 0; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--faint); }
+
+.muted { color: var(--gray); }
+.fine { font-size: 13px; line-height: 1.8; color: var(--gray); }
+.empty { color: var(--gray); font-size: 14px; margin: 0; padding: 18px 0; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

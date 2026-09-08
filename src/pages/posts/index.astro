@@ -4,16 +4,51 @@ import { getCollection } from 'astro:content';
 const posts = (await getCollection('posts', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const fmt = (d: Date) => new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'long', day: 'numeric' }).format(d);
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+const crumbs = {
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: '実況', item: 'https://ann1678.com/' },
+    { '@type': 'ListItem', position: 2, name: '手記', item: 'https://ann1678.com/posts/' },
+  ],
+};
+const list = {
+  '@type': 'Blog',
+  '@id': 'https://ann1678.com/posts/#blog',
+  name: 'クオンツ実況の手記',
+  inLanguage: 'ja',
+  publisher: { '@id': 'https://ann1678.com/#org' },
+  blogPost: posts.map((p) => ({
+    '@type': 'BlogPosting',
+    headline: p.data.title,
+    datePublished: p.data.date.toISOString(),
+    url: `https://ann1678.com/posts/${p.id}/`,
+  })),
+};
 ---
-<Base title="手記｜クオンツ実況">
-  <h1>手記</h1>
-  <p class="lead">数字だけでは残らないことを書きます。何を試して、何が外れて、次に何を変えるか。</p>
-  {posts.length === 0 && <div class="card"><p class="muted" style="margin:0">まだ書いていません。</p></div>}
-  {posts.map((p) => (
-    <div class="card" style="margin-bottom:12px">
-      <div class="muted" style="font-size:12.5px">{fmt(p.data.date)}</div>
-      <h3 style="margin:4px 0 6px;color:var(--ink);font-size:17px"><a href={`/posts/${p.id}/`}>{p.data.title}</a></h3>
-      {p.data.summary && <p class="muted" style="margin:0;font-size:13.5px">{p.data.summary}</p>}
-    </div>
-  ))}
+<Base
+  title="手記｜何を試して、何が外れたか｜クオンツ実況"
+  description="数字だけでは残らないことを書いています。何を試して、何が外れて、次に何を変えるか。株式会社ANNのクオンツ実況。"
+  jsonld={[crumbs, list]}
+>
+  <div class="hero">
+    <span class="eyebrow"><span class="n">NOTES</span> ／ {posts.length}本</span>
+    <h1>手記</h1>
+    <p class="lead">数字だけでは残らないことを書きます。何を試して、何が外れて、次に何を変えるか。</p>
+  </div>
+
+  <section class="section">
+    {posts.length === 0 && <p class="empty">まだ書いていません。</p>}
+    {posts.length > 0 && (
+      <div class="rows">
+        {posts.map((p) => (
+          <div>
+            <time datetime={iso(p.data.date)}>{fmt(p.data.date)}</time>
+            <div><a class="t" href={`/posts/${p.id}/`}>{p.data.title}</a></div>
+            {p.data.summary && <p class="fine" style="margin:4px 0 0">{p.data.summary}</p>}
+          </div>
+        ))}
+      </div>
+    )}
+  </section>
 </Base>

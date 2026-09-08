@@ -1,75 +1,108 @@
 ---
 import Base from '../layouts/Base.astro';
-import { results, trades, predictions, DIRECTION_LABEL, PAIR_LABEL, jst, pct, yen } from '../lib/data';
+import { results, trades, predictions, summary, DIRECTION_LABEL, PAIR_LABEL, jst, pct, yen } from '../lib/data';
 const judged = [...results].sort((a, b) => b.target_t - a.target_t);
 const done = [...trades].sort((a, b) => b.close_t - a.close_t);
 const open = predictions.filter((p) => !results.some((r) => r.id === p.id))
   .sort((a, b) => b.target_t - a.target_t);
+const sign = (n: number | null | undefined) => (n === null || n === undefined ? '' : n > 0 ? 'up' : n < 0 ? 'down' : '');
+
+// 記録そのものを構造化データにしておく。これが商品なので、検索側にも「何の記録か」を渡す。
+const dataset = {
+  '@type': 'Dataset',
+  '@id': 'https://ann1678.com/record/#dataset',
+  name: 'クオンツ実況：予測と仮想売買の全記録',
+  description:
+    'ビットコインとイーサリアムの72時間先の方向を1時間ごとに予測し、その結果と仮想売買の損益を全件記録したもの。追記のみで、公開後に書き換えていない。',
+  license: 'https://ann1678.com/about/',
+  isAccessibleForFree: true,
+  creator: { '@id': 'https://ann1678.com/#org' },
+  temporalCoverage: '2026-09-08/..',
+  variableMeasured: ['予測の方向', '的中', '建値', '手仕舞い値', '手数料後の損益率'],
+  distribution: [{ '@type': 'DataDownload', encodingFormat: 'application/jsonl', contentUrl: 'https://github.com/ANN1678/quant-live/tree/main/data' }],
+  dateModified: summary?.generated_at ?? undefined,
+};
 ---
-<Base title="記録｜クオンツ実況">
-  <h1>記録</h1>
-  <p class="lead">出した予測と、その結果を全部並べています。消したものはありません。書き換えたものもありません。順番は<a href="https://github.com/">リポジトリの履歴</a>が持っています。</p>
-
-  <h2>判定を待っている予測（{open.length}件）</h2>
-  <div class="card scroll">
-    <table>
-      <thead><tr><th>出した時刻</th><th>銘柄</th><th>予測</th><th>自信</th><th>建てた値</th><th>判定する時刻</th></tr></thead>
-      <tbody>
-        {open.length === 0 && <tr><td colspan="6" class="muted">ありません。</td></tr>}
-        {open.slice(0, 40).map((p: any) => (
-          <tr>
-            <td>{jst(p.made_at)}</td>
-            <td>{PAIR_LABEL[p.pair] ?? p.pair}</td>
-            <td><span class={`tag ${p.direction}`}>{DIRECTION_LABEL[p.direction]}</span></td>
-            <td class="num">{p.confidence ? p.confidence.toFixed(2) : '—'}</td>
-            <td class="num">{yen(p.base_price)}</td>
-            <td>{jst(p.target_at)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+<Base
+  title="記録｜出した予測と結果の全件｜クオンツ実況"
+  description="判定を待っている予測、判定が終わった予測、仮想売買の全件を並べています。消したものも、書き換えたものもありません。順番は公開リポジトリの履歴が持っています。"
+  jsonld={[dataset]}
+>
+  <div class="hero">
+    <span class="eyebrow"><span class="n">RECORD</span> ／ 追記だけ</span>
+    <h1>記録</h1>
+    <p class="lead">出した予測と、その結果を全部並べています。消したものはありません。書き換えたものもありません。順番は<a href="https://github.com/ANN1678/quant-live/tree/main/data">公開リポジトリの履歴</a>が持っています。</p>
   </div>
 
-  <h2>判定が終わった予測（{judged.length}件）</h2>
-  <div class="card scroll">
-    <table>
-      <thead><tr><th>判定した時刻</th><th>銘柄</th><th>予測</th><th>建てた値</th><th>判定の値</th><th>動き</th><th>結果</th></tr></thead>
-      <tbody>
-        {judged.length === 0 && <tr><td colspan="7" class="muted">まだありません。予測は72時間後に判定します。</td></tr>}
-        {judged.slice(0, 200).map((r: any) => (
-          <tr>
-            <td>{jst(r.target_at)}</td>
-            <td>{PAIR_LABEL[r.pair] ?? r.pair}</td>
-            <td><span class={`tag ${r.direction}`}>{DIRECTION_LABEL[r.direction]}</span></td>
-            <td class="num">{yen(r.base_price)}</td>
-            <td class="num">{yen(r.target_price)}</td>
-            <td class="num">{pct(r.move_pct)}</td>
-            <td>{r.hit === null ? '—' : r.hit ? '的中' : '外れ'}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
+  <section class="section">
+    <span class="eyebrow"><span class="n">01</span> ／ 判定待ち　{open.length}件</span>
+    <h2>まだ答えが出ていない予測</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>出した時刻</th><th>銘柄</th><th>予測</th><th>自信</th><th>建てた値</th><th>判定する時刻</th></tr></thead>
+        <tbody>
+          {open.length === 0 && <tr><td colspan="6" class="muted">ありません。</td></tr>}
+          {open.slice(0, 40).map((p: any) => (
+            <tr>
+              <td>{jst(p.made_at)}</td>
+              <td>{PAIR_LABEL[p.pair] ?? p.pair}</td>
+              <td><span class={`tag ${p.direction}`}>{DIRECTION_LABEL[p.direction]}</span></td>
+              <td class="num">{p.confidence ? p.confidence.toFixed(2) : '—'}</td>
+              <td class="num">{yen(p.base_price)}</td>
+              <td>{jst(p.target_at)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-  <h2>仮想の売買（{done.length}件）</h2>
-  <div class="card scroll">
-    <table>
-      <thead><tr><th>手仕舞った時刻</th><th>銘柄</th><th>方向</th><th>建てた値</th><th>手仕舞った値</th><th>手数料前</th><th>手数料</th><th>手数料後</th></tr></thead>
-      <tbody>
-        {done.length === 0 && <tr><td colspan="8" class="muted">まだありません。1件目は建ててから72時間後に確定します。</td></tr>}
-        {done.slice(0, 200).map((t: any) => (
-          <tr>
-            <td>{jst(t.close_at)}</td>
-            <td>{PAIR_LABEL[t.pair] ?? t.pair}</td>
-            <td><span class={`tag ${t.direction}`}>{DIRECTION_LABEL[t.direction]}</span></td>
-            <td class="num">{yen(t.entry)}</td>
-            <td class="num">{yen(t.exit)}</td>
-            <td class="num">{pct(t.gross_pct)}</td>
-            <td class="num muted">−{t.cost_pct}%</td>
-            <td class="num" style={t.net_pct > 0 ? 'color:var(--up)' : 'color:var(--down)'}>{pct(t.net_pct)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
+  <section class="section">
+    <span class="eyebrow"><span class="n">02</span> ／ 判定済み　{judged.length}件</span>
+    <h2>答えが出た予測</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>判定した時刻</th><th>銘柄</th><th>予測</th><th>建てた値</th><th>判定の値</th><th>動き</th><th>結果</th></tr></thead>
+        <tbody>
+          {judged.length === 0 && <tr><td colspan="7" class="muted">まだありません。予測は72時間後に判定します。</td></tr>}
+          {judged.slice(0, 200).map((r: any) => (
+            <tr>
+              <td>{jst(r.target_at)}</td>
+              <td>{PAIR_LABEL[r.pair] ?? r.pair}</td>
+              <td><span class={`tag ${r.direction}`}>{DIRECTION_LABEL[r.direction]}</span></td>
+              <td class="num">{yen(r.base_price)}</td>
+              <td class="num">{yen(r.target_price)}</td>
+              <td class={`num ${sign(r.move_pct)}`}>{pct(r.move_pct)}</td>
+              <td>{r.hit === null ? '—' : r.hit ? '的中' : '外れ'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <span class="eyebrow"><span class="n">03</span> ／ 仮想の売買　{done.length}件</span>
+    <h2>手仕舞ったもの</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>手仕舞った時刻</th><th>銘柄</th><th>方向</th><th>建てた値</th><th>手仕舞った値</th><th>手数料前</th><th>手数料</th><th>手数料後</th></tr></thead>
+        <tbody>
+          {done.length === 0 && <tr><td colspan="8" class="muted">まだありません。1件目は建ててから72時間後に確定します。</td></tr>}
+          {done.slice(0, 200).map((t: any) => (
+            <tr>
+              <td>{jst(t.close_at)}</td>
+              <td>{PAIR_LABEL[t.pair] ?? t.pair}</td>
+              <td><span class={`tag ${t.direction}`}>{DIRECTION_LABEL[t.direction]}</span></td>
+              <td class="num">{yen(t.entry)}</td>
+              <td class="num">{yen(t.exit)}</td>
+              <td class={`num ${sign(t.gross_pct)}`}>{pct(t.gross_pct)}</td>
+              <td class="num muted">−{t.cost_pct}%</td>
+              <td class={`num ${sign(t.net_pct)}`}>{pct(t.net_pct)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
 </Base>

@@ -1,8 +1,31 @@
 ---
 import '../styles/global.css';
-interface Props { title: string; description?: string; }
-const { title, description = 'クオンツ取引で相場を予測し、仮想で売買した結果を、そのまま公開しています。' } = Astro.props;
+import AnnMark from '../components/AnnMark.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** 検索に載せないページ（404）だけ true */
+  noindex?: boolean;
+  /** og:type。記事のときだけ article */
+  ogType?: string;
+  /** そのページ固有の構造化データ。会社とサイトの分は下で毎ページ出している */
+  jsonld?: unknown[];
+}
+
+const {
+  title,
+  description = '相場を予測し、仮想で売買した結果を、当たった回も外した回もそのまま公開しています。実際のお金を出す条件も数字で置いています。',
+  noindex = false,
+  ogType = 'website',
+  jsonld = [],
+} = Astro.props;
+
+const SITE = 'https://ann1678.com';
 const path = Astro.url.pathname;
+const canonical = new URL(path, SITE).href;
+const ogImage = `${SITE}/og.png`;
+
 const nav = [
   ['/', '実況'],
   ['/record/', '記録'],
@@ -10,6 +33,29 @@ const nav = [
   ['/posts/', '手記'],
   ['/about/', 'この記録について'],
 ];
+
+// 会社とサイト。全ページに出す。
+// ⚠ 住所と電話は載せていない。載せるなら登記の現況を確かめてから足すこと。
+const org = {
+  '@type': 'Organization',
+  '@id': `${SITE}/#org`,
+  name: '株式会社ANN',
+  alternateName: 'ANN',
+  url: `${SITE}/`,
+  email: 'info@ann1678.com',
+  logo: { '@type': 'ImageObject', url: `${SITE}/icon-512.png`, width: 512, height: 512 },
+  sameAs: ['https://x.com/ann_webstudio'],
+};
+const website = {
+  '@type': 'WebSite',
+  '@id': `${SITE}/#website`,
+  url: `${SITE}/`,
+  name: 'クオンツ実況',
+  description: '相場の予測と仮想売買の記録を、書き換えない形で公開しているサイト。',
+  inLanguage: 'ja',
+  publisher: { '@id': `${SITE}/#org` },
+};
+const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org, website, ...jsonld] });
 ---
 <html lang="ja">
   <head>
@@ -17,27 +63,74 @@ const nav = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex
+      ? <meta name="robots" content="noindex,follow" />
+      : <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1" />}
+
+    <meta property="og:site_name" content="クオンツ実況｜株式会社ANN" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonical} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="相場を予測して、仮想で売買しています。株式会社ANN／クオンツ実況" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@ann_webstudio" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="alternate" type="application/rss+xml" title="クオンツ実況の手記" href={`${SITE}/rss.xml`} />
+    <link rel="sitemap" type="application/xml" href={`${SITE}/sitemap.xml`} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;900&display=swap"
+    />
+
+    <script type="application/ld+json" set:html={graph} is:inline />
   </head>
   <body>
     <header class="site">
       <div class="wrap">
-        <a class="brand" href="/">クオンツ実況</a>
-        <nav>
+        <a class="brand" href="/">
+          <AnnMark id="mark-h" size={21} />
+          クオンツ実況
+        </a>
+        <nav aria-label="サイト内">
           {nav.map(([href, label]) => (
             <a href={href} aria-current={path === href ? 'page' : undefined}>{label}</a>
           ))}
         </nav>
       </div>
     </header>
+
     <main><div class="wrap"><slot /></div></main>
+
     <footer class="site">
       <div class="wrap">
-        <p>この記録は、投資の助言ではありません。売買を勧めるものでもありません。書いてあるのは、私たちが自分の仮説を試して、その結果を数えたものだけです。</p>
-        <p>株式会社ドラフト ／ <a href="/about/">この記録について</a></p>
+        <div class="top">
+          <a class="fbrand" href="/" style="text-decoration:none">
+            <AnnMark id="mark-f" size={22} />
+            株式会社ANN
+          </a>
+          <nav aria-label="足">
+            {nav.map(([href, label]) => <a href={href}>{label}</a>)}
+            <a href="mailto:info@ann1678.com">info@ann1678.com</a>
+          </nav>
+        </div>
+        <p class="fine">この記録は、投資の助言ではありません。売買を勧めるものでもありません。書いてあるのは、私たちが自分の仮説を試して、その結果を数えたものだけです。金融商品取引法にいう投資助言・代理業の登録は受けていません。</p>
+        <p class="legal">© {new Date().getFullYear()} ANN, Inc.</p>
         {/* サーバーの死活監視（~/care/monitor.sh）が10分ごとにこの印を探す。消すと監視が鳴る。 */}
         <!-- ann-render-ok -->
       </div>
