@@ -1,0 +1,24 @@
+name: 過去への当てはめを取り直す
+
+on:
+  schedule:
+    - cron: '20 20 * * 0'   # 毎週月曜 5:20 JST
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - run: python engine/backtest.py
+      - run: |
+          git config user.name "quant-live"
+          git config user.email "info@ann1678.com"
+          git add data/backtest.json
+          git diff --cached --quiet || (git commit -m "過去への当てはめを取り直した" && git push)

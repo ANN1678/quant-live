@@ -1,0 +1,37 @@
+name: 予測を出して記録する
+
+on:
+  schedule:
+    # 毎時5分（UTC）。GitHubの都合で数分ずれることがある。
+    - cron: '5 * * * *'
+  workflow_dispatch:
+
+# 同時に走らせない。走らせると同じ予測が二重に入る。
+concurrency:
+  group: engine
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - name: エンジンを回す
+        run: python engine/run.py
+      - name: 記録を残す
+        run: |
+          git config user.name "quant-live"
+          git config user.email "info@ann1678.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "変わっていないので何もしない"
+          else
+            git commit -m "記録 $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M')"
+            git push
+          fi
