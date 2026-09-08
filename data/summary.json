@@ -18,7 +18,7 @@
     "rule": "1回あたりの平均損益が、手数料を引いた後でプラスであること。それを偶然では説明できない件数で示すこと。",
     "trades": 0
   },
-  "generated_at": "2026-09-09T06:40:35+09:00",
+  "generated_at": "2026-09-09T06:49:19+09:00",
   "horizon_hours": 72,
   "made": 6,
   "model": "ema-cross-v1",
@@ -34,7 +34,7 @@
       "open_at": "2026-09-08T19:00:00+09:00",
       "open_t": 1788861600000,
       "pair": "btc_jpy",
-      "unrealized_pct": 0.076
+      "unrealized_pct": 0.002
     },
     {
       "close_at": "2026-09-11T19:00:00+09:00",
@@ -47,7 +47,7 @@
       "open_at": "2026-09-08T19:00:00+09:00",
       "open_t": 1788861600000,
       "pair": "eth_jpy",
-      "unrealized_pct": -0.028
+      "unrealized_pct": -0.086
     }
   ],
   "pending": [
