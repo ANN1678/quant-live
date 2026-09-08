@@ -5,7 +5,7 @@
 
 backend:
   name: github
-  repo: draft-ito/quant-live
+  repo: ANN1678/quant-live
   branch: main
 
 media_folder: public/media
