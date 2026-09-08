@@ -24,6 +24,22 @@ jobs:
       - run: pip install requests
       - name: エンジンを回す
         run: python engine/run.py
+      - name: 本番が生きているか外から見る
+        # サーバーの中の監視（~/care/monitor.sh）は、サーバーごと落ちると一緒に黙る。
+        # ここは GitHub の機械から見るので、その沈黙を捕まえられる。
+        run: |
+          code=$(curl -s -o /tmp/live.html -m 20 -w '%{http_code}' https://ann1678.com/)
+          echo "HTTP ${code}"
+          if [ "${code}" != "200" ]; then
+            echo "::error::ann1678.com が ${code} を返した"
+            exit 1
+          fi
+          if ! grep -q 'ann-render-ok' /tmp/live.html; then
+            echo "::error::ann1678.com は200を返したが、中身の印が無い（真っ白か壊れている）"
+            exit 1
+          fi
+          echo "生きている"
+
       - name: 記録を残す
         run: |
           git config user.name "quant-live"

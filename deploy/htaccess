@@ -1,0 +1,38 @@
+# ann1678.com のサーバー設定。
+#
+# このドメインは 2026-09-08 に、株式会社ANNのAIコンサルティングのサイトから、
+# クオンツ実況（相場の予測と仮想売買の記録）へ入れ替えた。
+# 旧サイトの中身は事業ごと株式会社ドラフトへ移したので、旧URLはあちらの同じ道へ送る。
+# 行き止まりを作らないためで、消したわけではない。
+
+ErrorDocument 404 /404.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # --- 旧サイトの記事5本。移った先の階層が違うので個別に書く ---
+  RewriteRule ^ai-donyu-consul-hiyou/?$        https://corp.clubd.co.jp/research/ai-donyu-consul-hiyou/ [R=301,L]
+  RewriteRule ^ai-donyu-shien-chusho-kigyou/?$ https://corp.clubd.co.jp/research/ai-donyu-shien-chusho-kigyou/ [R=301,L]
+  RewriteRule ^ai-donyu-shindan/?$             https://corp.clubd.co.jp/research/ai-donyu-shindan/ [R=301,L]
+  RewriteRule ^ai-donyu-nani-kara-hajimeru/?$  https://corp.clubd.co.jp/case/ai-donyu-nani-kara-hajimeru/ [R=301,L]
+  RewriteRule ^seisei-ai-kenshu-hiyou/?$       https://corp.clubd.co.jp/case/seisei-ai-kenshu-hiyou/ [R=301,L]
+
+  # --- 残りは同じ道に同じページがある ---
+  RewriteRule ^(service|works|company|contact|counseling|seminar|privacy|terms|commerce|ceomessage|research|case)(/.*)?$ https://corp.clubd.co.jp/$1$2 [R=301,L]
+
+  # --- WordPressの入口。もう無いので、探しに来たものを断つ ---
+  RewriteRule ^(wp-admin|wp-login\.php|wp-content|wp-includes|xmlrpc\.php) - [R=410,L]
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  # 実況は1時間ごとに書き換わるので、HTMLは持たせない
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType image/svg+xml "access plus 7 days"
+</IfModule>

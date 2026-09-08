@@ -26,7 +26,8 @@ cd "$ROOT" && npx astro build >/dev/null
 
 echo "[2/5] 固める"
 TMP=$(mktemp -d)
-tar czf "$TMP/site.tgz" -C "$ROOT/dist" .
+# COPYFILE_DISABLE=1 を付けないと macOS が ._* という控えを混ぜる（公開されると邪魔）
+COPYFILE_DISABLE=1 tar czf "$TMP/site.tgz" -C "$ROOT/dist" .
 LOCAL_MD5=$(md5 -q "$TMP/site.tgz")
 
 echo "[3/5] 送る"
@@ -41,7 +42,17 @@ if [ "$LOCAL_MD5" != "$REMOTE_MD5" ]; then
 fi
 echo "  ✓ $LOCAL_MD5"
 
-echo "[5/5] 展開する → $TARGET"
+echo "[5/6] 展開する → $TARGET"
 ssh_do "mkdir -p $TARGET && tar xzf ~/deploy/site.tgz -C $TARGET"
+
+echo "[6/6] .htaccess を置く"
+cat "$ROOT/deploy/htaccess" | ssh -i "$KEY" -p "$PORT" -o BatchMode=yes -o LogLevel=ERROR "$HOST" "cat > $TARGET/.htaccess"
+LOCAL_HT=$(md5 -q "$ROOT/deploy/htaccess")
+REMOTE_HT=$(ssh_do "md5sum $TARGET/.htaccess" | awk '{print $1}')
+if [ "$LOCAL_HT" != "$REMOTE_HT" ]; then
+  echo "  ✗ .htaccess が一致しない。" >&2
+  exit 1
+fi
+echo "  ✓ $LOCAL_HT"
 rm -rf "$TMP"
 echo "できました。"
