@@ -24,22 +24,6 @@ jobs:
       - run: pip install requests
       - name: エンジンを回す
         run: python engine/run.py
-      - name: 本番が生きているか外から見る
-        # サーバーの中の監視（~/care/monitor.sh）は、サーバーごと落ちると一緒に黙る。
-        # ここは GitHub の機械から見るので、その沈黙を捕まえられる。
-        run: |
-          code=$(curl -s -o /tmp/live.html -m 20 -w '%{http_code}' https://ann1678.com/)
-          echo "HTTP ${code}"
-          if [ "${code}" != "200" ]; then
-            echo "::error::ann1678.com が ${code} を返した"
-            exit 1
-          fi
-          if ! grep -q 'ann-render-ok' /tmp/live.html; then
-            echo "::error::ann1678.com は200を返したが、中身の印が無い（真っ白か壊れている）"
-            exit 1
-          fi
-          echo "生きている"
-
       - name: 記録を残す
         run: |
           git config user.name "quant-live"
@@ -57,3 +41,25 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/deploy.yml
+
+  # 外形チェックは最後に、別のジョブでやる。
+  # ⚠ 検査が本業を止めてはいけない。2026-09-08にこれを記録より前へ置いて、
+  #    チェックが1回タイムアウトしただけでその回の予測が保存されなかった。
+  alive:
+    needs: [run, deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 本番が生きているか外から見る
+        run: |
+          for i in 1 2 3 4 5; do
+            code=$(curl -sS -o /tmp/live.html -m 45 --retry 2 --retry-delay 5 \
+                        -A 'quant-live-uptime/1.0 (+https://ann1678.com/)' \
+                        -w '%{http_code}' https://ann1678.com/ || echo 000)
+            echo "試行 ${i}: HTTP ${code}"
+            if [ "${code}" = "200" ] && grep -q 'ann-render-ok' /tmp/live.html; then
+              echo "生きている"; exit 0
+            fi
+            sleep 20
+          done
+          echo "::error::ann1678.com に5回届かなかった（または中身の印が無い）"
+          exit 1
