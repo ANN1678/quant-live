@@ -47,6 +47,10 @@ jobs:
   #    チェックが1回タイムアウトしただけでその回の予測が保存されなかった。
   alive:
     needs: [run, deploy]
+    # ⚠ **エンジンが落ちても必ず走らせる。**
+    #    2026-09-09にエンジンが9時間落ち続けたとき、この検査が一緒に飛ばされたので、
+    #    サイトは200を返しながら古い数字を出したままだった。落ちたときこそ鳴らす必要がある。
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: 本番が生きているか外から見る
@@ -63,3 +67,20 @@ jobs:
           done
           echo "::error::ann1678.com に5回届かなかった（または中身の印が無い）"
           exit 1
+
+      - name: 記録が古くなっていないか
+        # サイトが生きていることと、記録が動いていることは別。
+        # 200を返しながら中身が止まっているのが、いちばん気づきにくい壊れ方。
+        run: |
+          curl -sS -m 30 -o /tmp/summary.json \
+            https://raw.githubusercontent.com/${{ github.repository }}/main/data/summary.json
+          python3 - <<'PY'
+          import json, datetime as dt, sys
+          s = json.load(open("/tmp/summary.json"))
+          t = dt.datetime.fromisoformat(s["generated_at"])
+          age = (dt.datetime.now(t.tzinfo) - t).total_seconds() / 3600
+          print(f"最後の記録: {s['generated_at']}（{age:.1f}時間前）／ 予測 {s['made']}件")
+          if age > 3:
+              print(f"::error::記録が{age:.1f}時間止まっている。エンジンが動いていない")
+              sys.exit(1)
+          PY
