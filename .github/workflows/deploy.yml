@@ -1,0 +1,42 @@
+name: サイトを組んで配る
+
+# 組んだ結果を deploy ブランチへ毎回まるごと置き換える。
+# サーバーはそのブランチを取りに来るだけなので、GitHubに鍵を預けなくて済む。
+# 履歴は毎回捨てる（1コミットだけ）。記録の履歴は main が持っているので、こちらは要らない。
+
+on:
+  push:
+    branches: [main]
+  workflow_call:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npx astro build
+      - name: サーバー設定を混ぜる
+        run: cp deploy/htaccess dist/.htaccess
+      - name: deploy ブランチを置き換える
+        run: |
+          cd dist
+          git init -q -b deploy
+          git config user.name "quant-live"
+          git config user.email "info@ann1678.com"
+          git add -A
+          git commit -q -m "組んだ $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M')"
+          git push -f -q https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git deploy:deploy
+          echo "置き換えた"

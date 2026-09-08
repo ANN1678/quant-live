@@ -51,3 +51,9 @@ jobs:
             git commit -m "記録 $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M')"
             git push
           fi
+
+  deploy:
+    needs: run
+    permissions:
+      contents: write
+    uses: ./.github/workflows/deploy.yml
