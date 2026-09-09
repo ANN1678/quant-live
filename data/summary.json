@@ -18,9 +18,9 @@
     "rule": "1回あたりの平均損益が、手数料を引いた後でプラスであること。それを偶然では説明できない件数で示すこと。",
     "trades": 0
   },
-  "generated_at": "2026-09-09T18:34:48+09:00",
+  "generated_at": "2026-09-09T23:23:43+09:00",
   "horizon_hours": 72,
-  "made": 12,
+  "made": 14,
   "model": "ema-cross-v1",
   "open_positions": [
     {
@@ -34,7 +34,7 @@
       "open_at": "2026-09-08T19:00:00+09:00",
       "open_t": 1788861600000,
       "pair": "btc_jpy",
-      "unrealized_pct": -0.961
+      "unrealized_pct": -0.154
     },
     {
       "close_at": "2026-09-11T19:00:00+09:00",
@@ -47,30 +47,10 @@
       "open_at": "2026-09-08T19:00:00+09:00",
       "open_t": 1788861600000,
       "pair": "eth_jpy",
-      "unrealized_pct": -0.925
+      "unrealized_pct": -0.325
     }
   ],
   "pending": [
-    {
-      "base_price": 12087783.0,
-      "confidence": 0.85,
-      "direction": "down",
-      "id": "btc_jpy-1788897600000",
-      "made_at": "2026-09-09T06:40:32+09:00",
-      "model": "ema-cross-v1",
-      "pair": "btc_jpy",
-      "target_at": "2026-09-12T05:00:00+09:00"
-    },
-    {
-      "base_price": 382628.0,
-      "confidence": 0.6288,
-      "direction": "down",
-      "id": "eth_jpy-1788897600000",
-      "made_at": "2026-09-09T06:40:32+09:00",
-      "model": "ema-cross-v1",
-      "pair": "eth_jpy",
-      "target_at": "2026-09-12T05:00:00+09:00"
-    },
     {
       "base_price": 12076564.0,
       "confidence": 0.8395,
@@ -130,6 +110,26 @@
       "model": "ema-cross-v1",
       "pair": "eth_jpy",
       "target_at": "2026-09-12T17:00:00+09:00"
+    },
+    {
+      "base_price": 12144885.0,
+      "confidence": 0.5581,
+      "direction": "down",
+      "id": "btc_jpy-1788958800000",
+      "made_at": "2026-09-09T23:23:32+09:00",
+      "model": "ema-cross-v1",
+      "pair": "btc_jpy",
+      "target_at": "2026-09-12T22:00:00+09:00"
+    },
+    {
+      "base_price": 383954.0,
+      "confidence": 0.0,
+      "direction": "none",
+      "id": "eth_jpy-1788958800000",
+      "made_at": "2026-09-09T23:23:32+09:00",
+      "model": "ema-cross-v1",
+      "pair": "eth_jpy",
+      "target_at": "2026-09-12T22:00:00+09:00"
     }
   ],
   "predictions": {
