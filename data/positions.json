@@ -10,7 +10,7 @@
     "open_at": "2026-09-08T19:00:00+09:00",
     "open_t": 1788861600000,
     "pair": "btc_jpy",
-    "unrealized_pct": 0.605
+    "unrealized_pct": 0.388
   },
   "eth_jpy": {
     "close_at": "2026-09-11T19:00:00+09:00",
@@ -23,6 +23,6 @@
     "open_at": "2026-09-08T19:00:00+09:00",
     "open_t": 1788861600000,
     "pair": "eth_jpy",
-    "unrealized_pct": 0.74
+    "unrealized_pct": 0.6
   }
 }
