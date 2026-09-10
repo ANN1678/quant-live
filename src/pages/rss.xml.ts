@@ -20,10 +20,10 @@ export const GET: APIRoute = async () => {
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>クオンツ実況の手記</title>
+    <title>ANNの手記</title>
     <link>${SITE}/posts/</link>
     <atom:link href="${SITE}/rss.xml" rel="self" type="application/rss+xml" />
-    <description>相場の予測と仮想売買の記録から、数字だけでは残らないことを書いています。株式会社ANN。</description>
+    <description>相場の予測と仮想売買の記録から、数字だけでは残らないことを書いています。</description>
     <language>ja</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
 ${items}

@@ -1,6 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="株式会社ANN">
-  <rect width="64" height="64" rx="13" fill="#0A0A0A"/>
-  <g transform="translate(5.5 8.6) scale(0.53)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ANN">
+  <!-- ⚠ 16pxまで縮む。三角を小さくすると黒い四角にしか見えない。この寸法から下げない。
+       正本＝ANN/outputs/brand/logo/ann-logo.svg（mask構造のまま。合成しない） -->
+  <rect width="64" height="64" rx="12" fill="#0A0A0A"/>
+  <g transform="translate(3.74 6.8) scale(0.565)">
     <mask id="f">
       <rect width="100" height="88" fill="#fff"/>
       <path fill="#000" d="M44.51 44.6H55.61L54.949999999999996 41.6H45.199999999999996ZM50.0 34.94 53.36 42.74 53.42 43.61 56.269999999999996 50.0H60.29L50.0 27.830000000000002L39.74 50.0H43.73L46.64 43.43L46.699999999999996 42.65Z M43.18 57.0V71.1L27.85 55.95V78.0H31.330000000000002V63.9L46.66 79.05V57.0Z M67.67 57.0V71.1L52.34 55.95V78.0H55.82V63.9L71.15 79.05V57.0Z"/>

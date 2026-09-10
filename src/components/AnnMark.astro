@@ -2,8 +2,9 @@
 // 株式会社ANN のロゴマーク。正本＝ANN/outputs/brand/logo/ann-logo.svg
 // ⚠ 字を <text> に戻さない（Jost が無い環境で化ける）。三角と字を1本のパスに合成しない
 //    （nonzero 前提の輪郭なので evenodd にすると「A」の横棒が抜ける）。mask 構造のまま触らない。
-interface Props { id: string; size?: number; class?: string; }
-const { id, size = 22, class: cls } = Astro.props;
+// 既定は飾り（aria-hidden）。頭では隣に「ANN」の字が出るので、二重に読ませない。
+interface Props { id: string; size?: number; class?: string; label?: string; }
+const { id, size = 22, class: cls, label } = Astro.props;
 ---
 <svg
   class={cls}
@@ -11,8 +12,10 @@ const { id, size = 22, class: cls } = Astro.props;
   viewBox="0 0 100 88"
   width={size}
   height={(size * 88) / 100}
-  role="img"
-  aria-label="株式会社ANN"
+  role={label ? 'img' : undefined}
+  aria-label={label || undefined}
+  aria-hidden={label ? undefined : 'true'}
+  focusable="false"
 >
   <mask id={id}>
     <rect width="100" height="88" fill="#fff" />

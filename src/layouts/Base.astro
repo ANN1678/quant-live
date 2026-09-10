@@ -36,13 +36,13 @@ const nav = [
 
 // 会社とサイト。全ページに出す。
 // ⚠ 住所と電話は載せていない。載せるなら登記の現況を確かめてから足すこと。
+// ⚠ 表に出す名前は ANN。登記名は legalName にだけ置く（2026-09-10 CEO指示）。
 const org = {
   '@type': 'Organization',
   '@id': `${SITE}/#org`,
-  name: '株式会社ANN',
-  alternateName: 'ANN',
+  name: 'ANN',
+  legalName: '株式会社ANN',
   url: `${SITE}/`,
-  email: 'info@ann1678.com',
   logo: { '@type': 'ImageObject', url: `${SITE}/icon-512.png`, width: 512, height: 512 },
   sameAs: ['https://x.com/ann_webstudio'],
 };
@@ -50,7 +50,7 @@ const website = {
   '@type': 'WebSite',
   '@id': `${SITE}/#website`,
   url: `${SITE}/`,
-  name: 'クオンツ実況',
+  name: 'ANN',
   description: '相場の予測と仮想売買の記録を、書き換えない形で公開しているサイト。',
   inLanguage: 'ja',
   publisher: { '@id': `${SITE}/#org` },
@@ -68,7 +68,7 @@ const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org,
       ? <meta name="robots" content="noindex,follow" />
       : <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1" />}
 
-    <meta property="og:site_name" content="クオンツ実況｜株式会社ANN" />
+    <meta property="og:site_name" content="ANN" />
     <meta property="og:locale" content="ja_JP" />
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={canonical} />
@@ -77,25 +77,27 @@ const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org,
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="相場を予測して、仮想で売買しています。株式会社ANN／クオンツ実況" />
+    <meta property="og:image:alt" content="相場を予測して、仮想で売買しています。ANN" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@ann_webstudio" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
 
+    {/* ⚠ .ico も置くこと。SVGを読まない相手（検索の一覧・古いSafari）が /favicon.ico を取りに来る */}
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#ffffff" />
-    <link rel="alternate" type="application/rss+xml" title="クオンツ実況の手記" href={`${SITE}/rss.xml`} />
+    <link rel="alternate" type="application/rss+xml" title="ANNの手記" href={`${SITE}/rss.xml`} />
     <link rel="sitemap" type="application/xml" href={`${SITE}/sitemap.xml`} />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
     />
 
     <script type="application/ld+json" set:html={graph} is:inline />
@@ -104,8 +106,8 @@ const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org,
     <header class="site">
       <div class="wrap">
         <a class="brand" href="/">
-          <AnnMark id="mark-h" size={21} />
-          クオンツ実況
+          <AnnMark id="mark-h" size={22} />
+          ANN
         </a>
         <nav aria-label="サイト内">
           {nav.map(([href, label]) => (
@@ -119,18 +121,11 @@ const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org,
 
     <footer class="site">
       <div class="wrap">
-        <div class="top">
-          <a class="fbrand" href="/" style="text-decoration:none">
-            <AnnMark id="mark-f" size={22} />
-            株式会社ANN
-          </a>
-          <nav aria-label="足">
-            {nav.map(([href, label]) => <a href={href}>{label}</a>)}
-            <a href="mailto:info@ann1678.com">info@ann1678.com</a>
-          </nav>
-        </div>
+        <nav aria-label="足">
+          {nav.map(([href, label]) => <a href={href}>{label}</a>)}
+        </nav>
         <p class="fine">この記録は、投資の助言ではありません。売買を勧めるものでもありません。書いてあるのは、私たちが自分の仮説を試して、その結果を数えたものだけです。金融商品取引法にいう投資助言・代理業の登録は受けていません。</p>
-        <p class="legal">© {new Date().getFullYear()} ANN, Inc.</p>
+        <p class="legal">© {new Date().getFullYear()} ANN</p>
         {/* サーバーの死活監視（~/care/monitor.sh）が10分ごとにこの印を探す。消すと監視が鳴る。 */}
         <!-- ann-render-ok -->
       </div>

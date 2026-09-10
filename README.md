@@ -1,4 +1,4 @@
-# クオンツ実況
+# ANN（ann1678.com）
 
 相場を予測して、仮想で売買し、その記録をすべて公開するサイト。
 本番は **https://ann1678.com/** で動いている。
@@ -110,6 +110,27 @@ npx astro dev
 
 ⚠ **手元で編集する前に必ず `git pull --rebase`。** Actionsが毎時 `data/` をコミットするので、
 そのままpushすると必ず弾かれる。
+
+## 見た目
+
+デザインの正本は `src/styles/global.css`。お手本は **block.xyz**（2026-09-10に実測）。
+書体は Inter（英数）と Zen Kaku Gothic New（かな漢字）の2つだけ。等幅はモデル名と式にだけ使い、Webフォントは読み込まない。
+
+⚠ **見出しの太さを900に戻さない。** 極太の見出しと、罫で囲んだ数字の格子が、前の作りが野暮ったく見えた原因。
+見出しは500、数字も500、節は罫ではなく空き（`--gap`）で区切る。数字の上にだけ細い罫を1本ひく。
+
+### 共有画像とファビコンの作り直し方
+
+```bash
+# og.png（1200x630）
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu \
+  --hide-scrollbars --virtual-time-budget=8000 --window-size=1200,630 \
+  --screenshot=public/og.png "file://$PWD/scripts/og/og.html"
+```
+
+ファビコンは `public/favicon.svg`（角丸・タブ用）が正本。`favicon.ico`（16/32/48）と、
+角を丸めない `icon-512.png`／`apple-touch-icon.png`／`favicon-192.png` はそこから起こす。
+⚠ `/favicon.ico` を消さない。SVGを読まない相手がここを取りに来る。
 
 ## 見張り
 

@@ -15,8 +15,8 @@ const perPair = Object.entries(gate?.per_pair ?? {}) as [string, any][];
 const sign = (n: number | null | undefined) => (n === null || n === undefined ? 'flat' : n > 0 ? 'up' : n < 0 ? 'down' : 'flat');
 ---
 <Base
-  title="クオンツ実況｜ビットコインの予測と仮想売買の記録を全部公開"
-  description="ビットコインとイーサリアムの72時間先を1時間ごとに予測し、仮想で売買した結果を全件そのまま出しています。的中率・1回あたりの損益・実際のお金を出す条件まで、数字で公開。株式会社ANN。"
+  title="ANN｜ビットコインの予測と仮想売買の記録を全部公開"
+  description="ビットコインとイーサリアムの72時間先を1時間ごとに予測し、仮想で売買した結果を全件そのまま出しています。的中率・1回あたりの損益・実際のお金を出す条件まで、数字で公開。"
 >
   <div class="hero">
     <span class="eyebrow"><span class="n">LIVE</span> ／ 1時間ごとに書き換えています</span>
@@ -29,8 +29,8 @@ const sign = (n: number | null | undefined) => (n === null || n === undefined ? 
     <h2>実際のお金を出す条件</h2>
     <p class="lead">1回あたりの平均損益が、手数料を引いたあとでプラスになること。そしてそれが偶然でないことを、決めた件数で検査して示すこと。<strong>的中率では決めません。</strong>このやり方は外すほうが多くても、勝ったときの値幅が大きければ増えるからです。</p>
 
-    <div class="panel dotfield" style="margin-top:26px">
-      <span class="eyebrow" style="margin-bottom:6px">1回あたりの平均損益（手数料とすべりを引いた後）</span>
+    <div class="panel" style="margin-top:38px">
+      <span class="eyebrow">1回あたりの平均損益（手数料とすべりを引いた後）</span>
       {hasAvg ? (
         <p class="readout" style={sign(gate?.avg_net_pct) === 'up' ? 'color:var(--up)' : sign(gate?.avg_net_pct) === 'down' ? 'color:var(--down)' : ''}>
           {pct(gate.avg_net_pct, 3)}
@@ -39,7 +39,7 @@ const sign = (n: number | null | undefined) => (n === null || n === undefined ? 
         <p class="readout pending">まだ1件も手仕舞っていません。1件目が確定したら、ここに出ます。</p>
       )}
 
-      <div class="stats c2" style="margin-top:26px">
+      <div class="stats c2" style="margin-top:48px">
         {perPair.length === 0 ? (
           <>
             <div class="stat">
@@ -68,7 +68,7 @@ const sign = (n: number | null | undefined) => (n === null || n === undefined ? 
         ))}
       </div>
 
-      <p class="fine" style="margin:18px 0 0">検査は銘柄ごとに、件数が50・100・200・400に達したときの4回だけです。毎時見て最初に線を越えた瞬間を合格にすると、優位が無くても3割から4割は合格させてしまうからです。逆に、1件あたり+0.5%ほどの優位が本当にあっても、400件で見つかる確率は4割ほどです。見つからなくても優位が無いとは言い切れません。</p>
+      <p class="fine" style="margin:34px 0 0">検査は銘柄ごとに、件数が50・100・200・400に達したときの4回だけです。毎時見て最初に線を越えた瞬間を合格にすると、優位が無くても3割から4割は合格させてしまうからです。逆に、1件あたり+0.5%ほどの優位が本当にあっても、400件で見つかる確率は4割ほどです。見つからなくても優位が無いとは言い切れません。</p>
     </div>
   </section>
 
@@ -160,7 +160,7 @@ const sign = (n: number | null | undefined) => (n === null || n === undefined ? 
         </table>
       </div>
     )}
-    <p style="margin-top:18px"><a href="/record/">記録をすべて見る</a></p>
+    <p style="margin-top:30px"><a class="cta" href="/record/">記録をすべて見る<span class="arw" aria-hidden="true">→</span></a></p>
   </section>
 
   {backtest && btSame && (
@@ -190,11 +190,11 @@ const sign = (n: number | null | undefined) => (n === null || n === undefined ? 
           </tbody>
         </table>
       </div>
-      <p class="fine" style="margin-top:14px">
+      <p class="fine" style="margin-top:20px">
         同じ規則で「いつでも上」と言う常時ロングも並べています。信号が足したものは、その差で読んでください。この4年には、モデルを選ぶのに使った期間が入っています。だからこの表は事前の検証ではなく、素性を見るためのものです。<strong>優位があるかどうかは、上の関門で決めます。</strong>
       </p>
     </section>
   )}
 
-  <p class="eyebrow" style="margin-top:44px">最後に更新したのは {jst(summary?.generated_at)}</p>
+  <p class="eyebrow" style="margin-top:72px">最後に更新したのは {jst(summary?.generated_at)}</p>
 </Base>

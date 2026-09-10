@@ -22,7 +22,7 @@ const crumbs = {
 };
 ---
 <Base
-  title="やり方｜予測モデルと約定の前提｜クオンツ実況"
+  title="やり方｜予測モデルと約定の前提｜ANN"
   description="何を予測し、どう約定したことにして、何を数えているか。72時間を選んだ理由、手数料とすべりの前提、関門の検査の決まりまで全部書いています。"
   jsonld={[crumbs]}
 >
@@ -72,7 +72,7 @@ const crumbs = {
     <span class="eyebrow"><span class="n">04</span> ／ 約定</span>
     <h2>約定したことにする前提</h2>
     <div class="scroll">
-      <table>
+      <table class="defs">
         <tbody>
           <tr><td>建てる方向</td><td colspan="2">上のときだけ建てます。下は建てません</td></tr>
           <tr><td>手数料（片道）</td><td class="num">BTC {feeBy.btc_jpy}% ／ ETH {feeBy.eth_jpy}%</td><td class="muted">bitbank の成行。API が返す値</td></tr>
@@ -117,6 +117,6 @@ const crumbs = {
     <span class="eyebrow"><span class="n">07</span> ／ 検証</span>
     <h2>書き換えていないことの確かめ方</h2>
     <p>予測は、結果が出る前にファイルへ追記して、そのままリポジトリへ記録しています。あとから書き換えれば履歴に残ります。的中率を上げるために外れた予測を消すことは、できない形にしてあります。</p>
-    <p><a href="https://github.com/ANN1678/quant-live">リポジトリを見る</a></p>
+    <p style="margin-top:26px"><a class="cta" href="https://github.com/ANN1678/quant-live">リポジトリを見る<span class="arw" aria-hidden="true">→</span></a></p>
   </section>
 </Base>

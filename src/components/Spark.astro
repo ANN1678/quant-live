@@ -1,7 +1,7 @@
 ---
 // 24時間の足を1本の線にする。目盛りは出さない（読ませるのは形だけ）。
 interface Props { points: number[]; w?: number; h?: number; color?: string; }
-const { points, w = 260, h = 44, color = '#5f5e5a' } = Astro.props;
+const { points, w = 260, h = 44, color = '#6b6a65' } = Astro.props;
 const lo = Math.min(...points), hi = Math.max(...points);
 const span = hi - lo || 1;
 const xy = points.map((p, i) => [
