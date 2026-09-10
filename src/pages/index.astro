@@ -8,9 +8,10 @@ const pred = summary?.predictions?.all ?? null;
 const trade = summary?.trading?.all ?? null;
 const pairs = Object.entries(market?.pairs ?? {}) as [string, any][];
 const open = pairs.map(([k, v]) => v.position).filter(Boolean);
-const recent = [...results].sort((a, b) => b.target_t - a.target_t).slice(0, 12);
-const progress = gate?.required_trades ? Math.min(100, (gate.trades / gate.required_trades) * 100) : 0;
+const recent = results.filter((r) => !summary?.model || r.model === summary.model).sort((a, b) => b.target_t - a.target_t).slice(0, 12);
+const btSame = !backtest || !summary?.model || (backtest.model === summary.model && backtest.rule === summary.rule);
 const hasAvg = gate?.avg_net_pct !== null && gate?.avg_net_pct !== undefined;
+const perPair = Object.entries(gate?.per_pair ?? {}) as [string, any][];
 const sign = (n: number | null | undefined) => (n === null || n === undefined ? 'flat' : n > 0 ? 'up' : n < 0 ? 'down' : 'flat');
 ---
 <Base
@@ -26,7 +27,7 @@ const sign = (n: number | null | undefined) => (n === null || n === undefined ? 
   <section class="section">
     <span class="eyebrow"><span class="n">01</span> ／ 判断の線</span>
     <h2>実際のお金を出す条件</h2>
-    <p class="lead">1回あたりの平均損益が、手数料を引いたあとでプラスになること。そしてその平均を、偶然では説明できない件数で示すこと。<strong>的中率では決めません。</strong>このやり方は外すほうが多くても、勝ったときの値幅が大きければ増えるからです。</p>
+    <p class="lead">1回あたりの平均損益が、手数料を引いたあとでプラスになること。そしてそれが偶然でないことを、決めた件数で検査して示すこと。<strong>的中率では決めません。</strong>このやり方は外すほうが多くても、勝ったときの値幅が大きければ増えるからです。</p>
 
     <div class="panel dotfield" style="margin-top:26px">
       <span class="eyebrow" style="margin-bottom:6px">1回あたりの平均損益（手数料とすべりを引いた後）</span>
@@ -38,28 +39,36 @@ const sign = (n: number | null | undefined) => (n === null || n === undefined ? 
         <p class="readout pending">まだ1件も手仕舞っていません。1件目が確定したら、ここに出ます。</p>
       )}
 
-      <div class="progress" role="img" aria-label={`必要な件数 ${gate?.required_trades ?? '未定'} 件のうち ${gate?.trades ?? 0} 件`}>
-        <i style={`width:${progress}%`}></i>
-      </div>
-      <div class="progress-ends">
-        <span>{gate?.trades ?? 0} 件</span>
-        <span>必要 {gate?.required_trades ?? '未定'} 件</span>
-      </div>
-
       <div class="stats c2" style="margin-top:26px">
-        <div class="stat">
-          <div class="kj">積み上がった売買</div>
-          <div class="v">{gate?.trades ?? 0}<span class="unit">件</span></div>
-          <div class="n">1銘柄1玉・72時間で手仕舞う</div>
-        </div>
-        <div class="stat">
-          <div class="kj">偶然でないと言える件数</div>
-          <div class="v">{gate?.required_trades ?? <span class="na">未定</span>}{gate?.required_trades ? <span class="unit">件</span> : null}</div>
-          <div class="n">(1.96 × ばらつき ÷ 平均) の2乗</div>
-        </div>
+        {perPair.length === 0 ? (
+          <>
+            <div class="stat">
+              <div class="kj">積み上がった売買</div>
+              <div class="v">0<span class="unit">件</span></div>
+              <div class="n">1銘柄1玉・72時間ごとに見直す</div>
+            </div>
+            <div class="stat">
+              <div class="kj">次の検査</div>
+              <div class="v">{gate?.checkpoints?.[0] ?? 50}<span class="unit">件</span></div>
+              <div class="n">銘柄ごとに数えます</div>
+            </div>
+          </>
+        ) : perPair.map(([pair, v]: [string, any]) => (
+          <div class="stat">
+            <div class="kj">{PAIR_LABEL[pair] ?? pair}</div>
+            <div class="v">{v.trades}<span class="unit">件{v.next_checkpoint ? `。次の検査は ${v.next_checkpoint} 件` : ''}</span></div>
+            <div class="progress" role="img" aria-label={`${PAIR_LABEL[pair] ?? pair} ${v.trades} 件。次の検査は ${v.next_checkpoint ?? '無し'} 件`}>
+              <i style={`width:${v.next_checkpoint ? Math.min(100, (v.trades / v.next_checkpoint) * 100) : 100}%`}></i>
+            </div>
+            <div class="n">いまの t {v.t ?? '—'}（参考。線は {gate?.threshold_t ?? 2.36}）{v.passed ? '・合格' : v.finished ? '・4回とも不合格' : ''}</div>
+            {v.verdicts?.length > 0 && (
+              <div class="n">{v.verdicts.map((d: any) => `${d.n}件で検査 t ${d.t} ${d.passed ? '合格' : '不合格'}（${jst(d.at)}）`).join('　')}</div>
+            )}
+          </div>
+        ))}
       </div>
 
-      <p class="fine" style="margin:18px 0 0">平均が小さいほど、必要な件数は急に増えます。わずかなプラスでは、何年数えても決められません。</p>
+      <p class="fine" style="margin:18px 0 0">検査は銘柄ごとに、件数が50・100・200・400に達したときの4回だけです。毎時見て最初に線を越えた瞬間を合格にすると、優位が無くても3割から4割は合格させてしまうからです。逆に、1件あたり+0.5%ほどの優位が本当にあっても、400件で見つかる確率は4割ほどです。見つからなくても優位が無いとは言い切れません。</p>
     </div>
   </section>
 
@@ -74,7 +83,7 @@ const sign = (n: number | null | undefined) => (n === null || n === undefined ? 
           <div class="stat">
             <div class="kj">{PAIR_LABEL[p.pair] ?? p.pair}　<span class={`tag ${p.direction}`}>{DIRECTION_LABEL[p.direction]}</span></div>
             <div class={`v ${sign(p.unrealized_pct)}`}>{pct(p.unrealized_pct, 2)}</div>
-            <div class="n">{yen(p.entry)}円で建て、{jst(p.close_at)}に手仕舞います</div>
+            <div class="n">{yen(p.entry)}円で建て、{jst(p.close_at)}に見直します{p.seg > 1 ? `（${p.seg}区間目）` : ''}</div>
           </div>
         ))}
       </div>
@@ -106,7 +115,7 @@ const sign = (n: number | null | undefined) => (n === null || n === undefined ? 
       <div class="stat">
         <div class="kj">予測の的中率</div>
         <div class="v">{pred?.hit_rate === null || pred?.hit_rate === undefined ? <span class="na">—</span> : `${pred.hit_rate}%`}</div>
-        <div class="n">判定した {pred?.judged ?? 0} 件のうち {pred?.hits ?? 0} 件</div>
+        <div class="n">判定した {pred?.judged ?? 0} 件のうち {pred?.hits ?? 0} 件。重ならない数え方では {pred?.nonoverlap_hit_rate ?? '—'}%（{pred?.nonoverlap_judged ?? 0} 件）</div>
       </div>
       <div class="stat">
         <div class="kj">売買の勝率</div>
@@ -154,25 +163,27 @@ const sign = (n: number | null | undefined) => (n === null || n === undefined ? 
     <p style="margin-top:18px"><a href="/record/">記録をすべて見る</a></p>
   </section>
 
-  {backtest && (
+  {backtest && btSame && (
     <section class="section">
       <span class="eyebrow"><span class="n">06</span> ／ 当てはめ</span>
       <h2>過去に当てはめた結果</h2>
       <div class="note warn">
-        ここから下は<strong>事前に公開した予測ではありません。</strong>過去{backtest.days}日の足に、同じやり方を後から通しただけです。上の数字とは別のものとして読んでください。
+        ここから下は<strong>事前に公開した予測ではありません。</strong>いまのモデル <span class="mono">{backtest.model}</span> と規則 <span class="mono">{backtest.rule}</span> を、過去{backtest.days}日の足に後から通しただけです。上の数字とは別のものとして読んでください。過去には気配の記録が無いので、その足の終値で約定したことにしています。
       </div>
       <div class="scroll">
         <table>
-          <thead><tr><th>銘柄</th><th>予測</th><th>的中率</th><th>売買</th><th>1回あたり平均</th><th>必要件数</th><th>最大下落</th></tr></thead>
+          <thead><tr><th>銘柄</th><th>予測</th><th>的中率</th><th>売買</th><th>1回あたり平均</th><th>中央値</th><th>t</th><th>常時ロング</th><th>最大下落</th></tr></thead>
           <tbody>
             {Object.values(backtest.pairs).map((p: any) => (
               <tr>
                 <td>{PAIR_LABEL[p.pair] ?? p.pair}</td>
                 <td class="num">{p.judged}</td>
-                <td class="num">{p.hit_rate}%</td>
+                <td class="num">{p.hit_rate}%<span class="muted">（重ならない {p.hit_rate_nonoverlap ?? '—'}%）</span></td>
                 <td class="num">{p.trades}</td>
                 <td class={`num ${sign(p.avg_net_pct)}`}>{pct(p.avg_net_pct, 3)}</td>
-                <td class="num">{p.required_trades ?? '—'}</td>
+                <td class="num">{pct(p.median_net_pct, 3)}</td>
+                <td class="num">{p.t ?? '—'}</td>
+                <td class="num">{pct(p.always_long?.avg_net_pct, 3)}</td>
                 <td class="num">{p.max_drawdown_pct}%</td>
               </tr>
             ))}
@@ -180,7 +191,7 @@ const sign = (n: number | null | undefined) => (n === null || n === undefined ? 
         </table>
       </div>
       <p class="fine" style="margin-top:14px">
-        必要件数が千を超えています。いまのやり方の優位性は、あったとしても小さすぎて、月10件の売買では10年かけても証明できません。<strong>ここが次に解く問題です。</strong>
+        同じ規則で「いつでも上」と言う常時ロングも並べています。信号が足したものは、その差で読んでください。この4年には、モデルを選ぶのに使った期間が入っています。だからこの表は事前の検証ではなく、素性を見るためのものです。<strong>優位があるかどうかは、上の関門で決めます。</strong>
       </p>
     </section>
   )}

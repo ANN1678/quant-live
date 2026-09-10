@@ -1,71 +1,57 @@
 """予測のやり方。
 
-いまの版は ema-cross-v1 と呼ぶ。短い平均が長い平均より上なら上、下なら下と読む。
-差が小さいときは見送る。当てにいかないことも記録に残す。
+いまの版は tsmom-vote-v2 と呼ぶ。**7日・14日・28日の値動きの向きを多数決する。**
+最後に閉じた1時間足の終値を、7日前・14日前・28日前の終値と比べ、上がっていれば1票、下がっていれば−1票。
+票の合計がプラスなら「上」、マイナスなら「下」、ちょうど0なら「見送り」。判定は72時間後の終値。
 
-**判定は72時間後。**1時間や4時間では、当てても手数料に届かない。
-90日ぶんの実測で、1時間の平均の値幅は0.25%しかなく、往復の手数料0.34%を下回る。
-100%当てても負ける。だから3日を単位にした。根拠は /method/ に出す。
+なぜこの形か
+- 1時間足の EMA12/48 のクロス（v1）は、4年・6銘柄に当てると的中率 47〜50%、1回あたりの平均損益はマイナスだった。
+  90日の +0.22% は、2026-08-18 の1件が作った偶然の窓だった（research/ に全部ある）
+- 日次〜週次の時系列モメンタムは文献（Moskowitz-Ooi-Pedersen 2012、Liu-Tsyvinski 2021）に根拠がある。
+  7・14・28日はそこから取った値で、成績を見て動かしていない
+- とはいえ**優位が証明されたわけではない。**4年の検証で常時ロングをわずかに上回るだけで、t値は 1.0〜1.3。
+  だからこれは「事前に登録した仮説」で、関門（report.py）で検査する
 
-⚠ パラメータは、結果を見る前に決めた値のまま動かしていない。
-   後から成績のいい値へ寄せると、その時点で成績は過去への当てはめになる。
+⚠ パラメータ（7・14・28・72）は成績を見て寄せていない。寄せた時点で成績は過去への当てはめになる。
 ⚠ モデルを変えたら MODEL の名前を必ず変える。名前を変えないと違うやり方の成績が同じ欄に混ざる。
+⚠ 「自信」は出さない。v1 の confidence は的中率と無関係だった（0.85 の帯で的中 48%）。確率に見える数字を根拠なく出さない。
 """
 from __future__ import annotations
 
-MODEL = "ema-cross-v1"
-FAST, SLOW, ATR_N = 12, 48, 24
+MODEL = "tsmom-vote-v2"
+LOOKBACK_DAYS = (7, 14, 28)
 HORIZON_HOURS = 72
-QUIET = 0.15
+HOUR_MS = 3_600_000
+# 28日前の足まで要る。足の欠けに備えて少し余分に持つ
+NEED_HOURS = 24 * max(LOOKBACK_DAYS)
 
 
-def ema(values: list[float], n: int) -> float:
-    k = 2 / (n + 1)
-    e = values[0]
-    for v in values[1:]:
-        e = v * k + e * (1 - k)
-    return e
-
-
-def atr_pct(candles: list[dict], n: int = ATR_N) -> float:
-    """値動きの幅を、終値に対する割合で返す。"""
-    rows = candles[-(n + 1):]
-    if len(rows) < 2:
-        return 0.0
-    trs = []
-    for prev, cur in zip(rows, rows[1:]):
-        tr = max(cur["h"] - cur["l"], abs(cur["h"] - prev["c"]), abs(prev["c"] - cur["l"]))
-        trs.append(tr / cur["c"])
-    return sum(trs) / len(trs)
+def _sign(x: float) -> int:
+    return 1 if x > 0 else -1 if x < 0 else 0
 
 
 def decide(candles: list[dict]) -> dict | None:
-    """足の並びから、次の72時間の方向を決める。足が足りなければ None を返す。"""
-    if len(candles) < SLOW + 2:
+    """閉じた足の並び（古い順、最後が基準の足）から、次の72時間の方向を決める。足が足りなければ None。"""
+    if not candles:
         return None
-    closes = [c["c"] for c in candles]
-    fast = ema(closes[-FAST * 3:], FAST)
-    slow = ema(closes[-SLOW * 3:], SLOW)
-    width = atr_pct(candles)
-    spread = (fast - slow) / slow if slow else 0.0
-
-    if width <= 0 or abs(spread) < QUIET * width:
-        direction, confidence = "none", 0.0
-    else:
-        direction = "up" if spread > 0 else "down"
-        strength = min(abs(spread) / width, 2.0)
-        confidence = round(0.50 + 0.175 * strength, 4)
-
+    base = candles[-1]
+    by_t = {c["t"]: c for c in candles}
+    rets: dict[str, float] = {}
+    for n in LOOKBACK_DAYS:
+        want = base["t"] - n * 24 * HOUR_MS
+        # その時刻の足が無ければ、3時間以内の前の足で代える（取引所が返さない時間がまれにある）
+        past = next((by_t[want - k * HOUR_MS] for k in range(0, 4) if want - k * HOUR_MS in by_t), None)
+        if past is None or past["c"] <= 0:
+            continue
+        rets[f"r{n}d_pct"] = (base["c"] / past["c"] - 1.0) * 100
+    if not rets:
+        return None
+    votes = sum(_sign(v) for v in rets.values())
+    direction = "up" if votes > 0 else "down" if votes < 0 else "none"
     return {
         "model": MODEL,
         "horizon_hours": HORIZON_HOURS,
         "direction": direction,
-        "confidence": confidence,
-        "reason": {
-            "ema_fast": round(fast, 2),
-            "ema_slow": round(slow, 2),
-            "spread_pct": round(spread * 100, 4),
-            "atr_pct": round(width * 100, 4),
-            "quiet_line_pct": round(QUIET * width * 100, 4),
-        },
+        "confidence": None,
+        "reason": {**{k: round(v, 4) for k, v in rets.items()}, "votes": votes},
     }

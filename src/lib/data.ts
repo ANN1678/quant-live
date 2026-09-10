@@ -57,6 +57,7 @@ export function pct(n: number | null | undefined, digits = 2): string {
 export function jst(iso: string | number | null | undefined): string {
   if (iso === null || iso === undefined) return '—';
   const d = typeof iso === 'number' ? new Date(iso) : new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
   return new Intl.DateTimeFormat('ja-JP', {
     timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric',
     hour: '2-digit', minute: '2-digit',

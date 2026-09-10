@@ -50,10 +50,16 @@ def _get(url: str) -> dict:
     raise MarketError(url)
 
 
-def candles(pair: str, span: str = "1hour", days: int = 7) -> list[dict]:
-    """直近 days 日ぶんの足を、古い順で返す。日付は **UTC** で組み立てる。"""
+def candles(pair: str, span: str = "1hour", days: int = 7, since_ms: int | None = None) -> list[dict]:
+    """直近 days 日ぶんの足を、古い順で返す。日付は **UTC** で組み立てる。
+
+    since_ms を渡すと、その時刻の日（UTC）まで遡って取る（days より古い玉や予測を判定するため）。
+    """
     out: list[dict] = []
     today = datetime.now(timezone.utc).date()
+    if since_ms is not None:
+        since_day = datetime.fromtimestamp(since_ms / 1000, timezone.utc).date()
+        days = max(days, (today - since_day).days + 1)
     for back in range(days - 1, -1, -1):
         d = today - timedelta(days=back)
         try:

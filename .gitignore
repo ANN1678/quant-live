@@ -5,3 +5,7 @@ dist/
 *.log
 __pycache__/
 *.pyc
+
+# 研究用の過去データ（fetch_history.py で取り直せる。17MB）
+research/cache/
+research/__pycache__/

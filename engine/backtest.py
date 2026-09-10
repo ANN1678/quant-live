@@ -4,110 +4,108 @@
 ⚠ **これは予測の記録ではない。** 過去のデータを後から通しただけで、事前に公開していない。
    サイトでも別の場所に、別の名前で出す。混ぜたら全部が疑わしくなる。
 
-本番と同じ規則で回す。予測は1時間ごと（重なる）。玉は1銘柄1つまでで、72時間持つ。
+本番と同じ規則（sim.py）で、取れる限り長く回す。既定は4年。bitbank の1時間足は1日1リクエストなので、
+4年で銘柄ごとに約1,460回、数分かかる。
+90日だけ見ると、1件の大勝ちで平均の符号が決まる（v1 の +0.22% は 2026-08-18 の1件だった）。
+だから期間は長く取り、平均のほかに中央値・ブートストラップの区間・年ごとの値を出す。
+
+比較の基準として「常時ロング」（いつでも「上」と言う）も同じ規則で回す。
+ロングだけの規則では、相場が上がった期間はどんな信号でもプラスに見える。信号が足したものはその差で読む。
+
+BACKTEST_DAYS を環境変数で渡すと期間を変えられる。
 """
 from __future__ import annotations
 
-import math
-import statistics
+import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import market
 import paper
+import sim
+import stats
 import strategy
-from common import BACKTEST, JST, iso, now, write_json
+from common import BACKTEST, HOUR_MS, JST, iso, now, write_json
 
-DAYS = 90
+DAYS = int(os.environ.get("BACKTEST_DAYS", "1460"))
 H = strategy.HORIZON_HOURS
 
 
-def run_pair(pair: str, days: int = DAYS) -> dict:
-    candles = market.candles(pair, "1hour", days=days)
-    judged = hits = 0
-    trades: list[dict] = []
-    curve: list[dict] = []
-    capital = paper.START_CAPITAL
-    peak, max_dd = capital, 0.0
-    next_free = 0  # この足まで玉を持っている
+def _year(ms: int) -> int:
+    return datetime.fromtimestamp(ms / 1000, timezone.utc).year
 
-    for i in range(strategy.SLOW + 2, len(candles) - H):
-        window = candles[: i + 1]
-        call = strategy.decide(window)
-        if call is None:
-            continue
-        entry = window[-1]["c"]
-        exit_ = candles[i + H]["c"]
 
-        # 予測の判定（重なる。1時間ごとに全部数える）
-        if call["direction"] != "none":
-            judged += 1
-            up = exit_ > entry
-            if (up and call["direction"] == "up") or (not up and call["direction"] == "down"):
-                hits += 1
+def _sample(curve: list[dict], limit: int = 400) -> list[dict]:
+    if len(curve) <= limit:
+        return curve
+    step = len(curve) / limit
+    return [curve[int(i * step)] for i in range(limit)] + [curve[-1]]
 
-        # 売買（重ならない。玉が空いているときだけ建てる）
-        if call["direction"] != "none" and i >= next_free:
-            pnl = paper.settle(call["direction"], entry, exit_)
-            capital += capital * paper.POSITION * (pnl["net_pct"] / 100)
-            peak = max(peak, capital)
-            max_dd = max(max_dd, (peak - capital) / peak * 100)
-            trades.append(pnl)
-            curve.append({"t": candles[i + H]["t"], "capital": round(capital)})
-            next_free = i + H
 
-    nets = [t["net_pct"] for t in trades]
-    wins = [x for x in nets if x > 0]
-    losses = [x for x in nets if x <= 0]
-    mean = statistics.mean(nets) if nets else None
-    sd = statistics.stdev(nets) if len(nets) > 1 else None
-    required = math.ceil((1.96 * sd / mean) ** 2) if mean and sd and mean > 0 else None
-
+def run_pair(pair: str, days: int = DAYS, candles: list[dict] | None = None) -> dict:
+    if candles is None:
+        candles = market.candles(pair, "1hour", days=days)
+    this_hour = int(now().replace(minute=0, second=0, microsecond=0).timestamp() * 1000)
+    candles = [c for c in candles if c["t"] < this_hour]  # 形成中の足を除く
+    r = sim.simulate(pair, candles)
+    base = sim.simulate(pair, candles, decide=sim.always_up)
+    nets = [t["net_pct"] for t in r["trades"]]
+    st = stats.trade_stats(nets)
+    by_year = {}
+    for y in sorted({_year(t["close_t"]) for t in r["trades"]}):
+        ys = stats.trade_stats([t["net_pct"] for t in r["trades"] if _year(t["close_t"]) == y], with_ci=False)
+        by_year[str(y)] = {k: ys[k] for k in ("trades", "avg_net_pct", "sd_pct", "t", "win_rate")}
+    bst = stats.trade_stats([t["net_pct"] for t in base["trades"]], with_ci=False)
     return {
         "pair": pair,
         "from": iso(datetime.fromtimestamp(candles[0]["t"] / 1000, JST)),
         "to": iso(datetime.fromtimestamp(candles[-1]["t"] / 1000, JST)),
         "hours": len(candles),
-        "judged": judged,
-        "hits": hits,
-        "hit_rate": round(hits / judged * 100, 2) if judged else None,
-        "trades": len(trades),
-        "wins": len(wins),
-        "win_rate": round(len(wins) / len(trades) * 100, 2) if trades else None,
-        "avg_net_pct": round(mean, 4) if mean is not None else None,
-        "sd_pct": round(sd, 4) if sd is not None else None,
-        "win_avg_pct": round(statistics.mean(wins), 3) if wins else None,
-        "loss_avg_pct": round(statistics.mean(losses), 3) if losses else None,
-        "required_trades": required,
-        "capital_end": round(capital),
-        "change_pct": round((capital / paper.START_CAPITAL - 1) * 100, 3),
-        "max_drawdown_pct": round(max_dd, 3),
-        "curve": curve,
+        # 予測（毎時。重なる）
+        "judged": r["judged"], "hits": r["hits"], "hit_rate": r["hit_rate"],
+        "judged_nonoverlap": r["judged_nonoverlap"], "hit_rate_nonoverlap": r["hit_rate_nonoverlap"],
+        "up_judged": r["up_judged"], "up_hit_rate": r["up_hit_rate"],
+        "down_judged": r["down_judged"], "down_hit_rate": r["down_hit_rate"],
+        "passed": r["passed"],
+        # 売買（重ならない。持ち越しの区間も1件）
+        **{k: st[k] for k in ("trades", "wins", "win_rate", "avg_net_pct", "median_net_pct", "trimmed_mean_pct",
+                               "sd_pct", "t", "ci95", "win_avg_pct", "loss_avg_pct", "payoff", "profit_factor",
+                               "required_trades")},
+        "carried": sum(1 for t in r["trades"] if not t["closes"]),
+        "capital_end": round(r["capital_end"]),
+        "change_pct": round((r["capital_end"] / paper.START_CAPITAL - 1) * 100, 3),
+        "max_drawdown_pct": r["max_drawdown_pct"],
+        "by_year": by_year,
+        "always_long": {k: bst[k] for k in ("trades", "avg_net_pct", "sd_pct", "t", "win_rate")},
+        "curve": _sample(r["curve"]),
     }
 
 
-if __name__ == "__main__":
+def main(days: int = DAYS) -> dict:
     out = {
         "generated_at": iso(now()),
         "model": strategy.MODEL,
+        "rule": paper.RULE,
         "horizon_hours": H,
-        "days": DAYS,
+        "days": days,
         "warning": "過去の足に後から当てはめた結果です。事前に公開した予測ではありません。",
-        "assumptions": {
-            "fee_pct": round(paper.FEE * 100, 4),
-            "slippage_pct": round(paper.SLIPPAGE * 100, 4),
-            "round_trip_cost_pct": round(paper.ROUND_TRIP_COST * 100, 4),
-            "position_pct": round(paper.POSITION * 100, 2),
-        },
+        "fill_note": "過去には気配の記録が無いので、その足の終値で約定したことにしています。本番は run の時点の気配で約定します。",
+        "assumptions": {**paper.assumptions(), "lookback_days": list(strategy.LOOKBACK_DAYS)},
         "pairs": {},
     }
     for p in market.PAIRS:
-        r = run_pair(p)
+        r = run_pair(p, days)
         out["pairs"][p] = r
-        print(f"{p}: 予測 {r['judged']}件・的中率 {r['hit_rate']}% ／ "
-              f"売買 {r['trades']}件・平均 {r['avg_net_pct']}%・"
-              f"必要件数 {r['required_trades']} ／ 資金 {r['change_pct']}%・最大下落 {r['max_drawdown_pct']}%")
+        print(f"{p}: 予測 {r['judged']}件・的中率 {r['hit_rate']}%（重ならない {r['judged_nonoverlap']}件・{r['hit_rate_nonoverlap']}%）／ "
+              f"売買 {r['trades']}件・平均 {r['avg_net_pct']}%・中央値 {r['median_net_pct']}%・t {r['t']}・区間 {r['ci95']} ／ "
+              f"常時ロング {r['always_long']['avg_net_pct']}%（t {r['always_long']['t']}）／ "
+              f"資金 {r['change_pct']}%・最大下落 {r['max_drawdown_pct']}%")
     write_json(BACKTEST, out)
+    return out
+
+
+if __name__ == "__main__":
+    main()

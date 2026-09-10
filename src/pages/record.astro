@@ -1,10 +1,17 @@
 ---
 import Base from '../layouts/Base.astro';
 import { results, trades, predictions, summary, DIRECTION_LABEL, PAIR_LABEL, jst, pct, yen } from '../lib/data';
-const judged = [...results].sort((a, b) => b.target_t - a.target_t);
-const done = [...trades].sort((a, b) => b.close_t - a.close_t);
+const curModel = summary?.model;
+const curRule = summary?.rule;
+const isCur = (r: any) => !curModel || r.model === curModel;
+const isCurTrade = (t: any) => !curRule || (t.rule === curRule && t.model === curModel);
+const judged = results.filter(isCur).sort((a, b) => b.target_t - a.target_t);
+const done = trades.filter(isCurTrade).sort((a, b) => b.close_t - a.close_t);
 const open = predictions.filter((p) => !results.some((r) => r.id === p.id))
   .sort((a, b) => b.target_t - a.target_t);
+const oldJudged = results.filter((r) => !isCur(r)).sort((a, b) => b.target_t - a.target_t);
+const oldDone = trades.filter((t) => !isCurTrade(t)).sort((a, b) => b.close_t - a.close_t);
+const oldModels = [...new Set([...oldJudged.map((r) => r.model), ...oldDone.map((t) => `${t.model}／${t.rule ?? 'close-72h-v1'}`)])];
 const sign = (n: number | null | undefined) => (n === null || n === undefined ? '' : n > 0 ? 'up' : n < 0 ? 'down' : '');
 
 // 記録そのものを構造化データにしておく。これが商品なので、検索側にも「何の記録か」を渡す。
@@ -39,15 +46,16 @@ const dataset = {
     <h2>まだ答えが出ていない予測</h2>
     <div class="scroll">
       <table>
-        <thead><tr><th>出した時刻</th><th>銘柄</th><th>予測</th><th>自信</th><th>建てた値</th><th>判定する時刻</th></tr></thead>
+        <thead><tr><th>出した時刻</th><th>銘柄</th><th>予測</th><th>モデル</th><th>自信／票</th><th>建てた値</th><th>判定する時刻</th></tr></thead>
         <tbody>
-          {open.length === 0 && <tr><td colspan="6" class="muted">ありません。</td></tr>}
+          {open.length === 0 && <tr><td colspan="7" class="muted">ありません。</td></tr>}
           {open.slice(0, 40).map((p: any) => (
             <tr>
               <td>{jst(p.made_at)}</td>
               <td>{PAIR_LABEL[p.pair] ?? p.pair}</td>
               <td><span class={`tag ${p.direction}`}>{DIRECTION_LABEL[p.direction]}</span></td>
-              <td class="num">{p.confidence ? p.confidence.toFixed(2) : '—'}</td>
+              <td class="mono">{p.model}</td>
+              <td class="num">{p.confidence ? `自信 ${p.confidence.toFixed(2)}` : p.reason?.votes !== undefined ? `票 ${p.reason.votes > 0 ? '+' : ''}${p.reason.votes}` : '—'}</td>
               <td class="num">{yen(p.base_price)}</td>
               <td>{jst(p.target_at)}</td>
             </tr>
@@ -83,21 +91,23 @@ const dataset = {
 
   <section class="section">
     <span class="eyebrow"><span class="n">03</span> ／ 仮想の売買　{done.length}件</span>
-    <h2>手仕舞ったもの</h2>
+    <h2>閉じた区間</h2>
+    <p class="lead">72時間ごとに1件です。予測が同じ向きなら閉じずに持ち越すので、コストは建てた区間と閉じた区間にだけ載ります。</p>
     <div class="scroll">
       <table>
-        <thead><tr><th>手仕舞った時刻</th><th>銘柄</th><th>方向</th><th>建てた値</th><th>手仕舞った値</th><th>手数料前</th><th>手数料</th><th>手数料後</th></tr></thead>
+        <thead><tr><th>区間の終わり</th><th>銘柄</th><th>方向</th><th>区間</th><th>建てた値</th><th>区間の終値</th><th>コスト前</th><th>コスト</th><th>コスト後</th></tr></thead>
         <tbody>
-          {done.length === 0 && <tr><td colspan="8" class="muted">まだありません。1件目は建ててから72時間後に確定します。</td></tr>}
+          {done.length === 0 && <tr><td colspan="9" class="muted">まだありません。1件目は建ててから72時間後に確定します。</td></tr>}
           {done.slice(0, 200).map((t: any) => (
             <tr>
               <td>{jst(t.close_at)}</td>
               <td>{PAIR_LABEL[t.pair] ?? t.pair}</td>
               <td><span class={`tag ${t.direction}`}>{DIRECTION_LABEL[t.direction]}</span></td>
+              <td class="num">{t.seg ?? 1}{t.closes === false ? '（持ち越し）' : '（閉じた）'}</td>
               <td class="num">{yen(t.entry)}</td>
               <td class="num">{yen(t.exit)}</td>
               <td class={`num ${sign(t.gross_pct)}`}>{pct(t.gross_pct)}</td>
-              <td class="num muted">−{t.cost_pct}%</td>
+              <td class="num muted">{t.cost_pct ? `−${t.cost_pct}%` : '—'}</td>
               <td class={`num ${sign(t.net_pct)}`}>{pct(t.net_pct)}</td>
             </tr>
           ))}
@@ -105,4 +115,56 @@ const dataset = {
       </table>
     </div>
   </section>
+
+  {(oldJudged.length > 0 || oldDone.length > 0) && (
+    <section class="section">
+      <span class="eyebrow"><span class="n">04</span> ／ 前のモデル　{oldModels.join('・')}</span>
+      <h2>前のモデルの記録</h2>
+      <p class="lead">モデルや売買の規則を替える前の記録です。消さずにここへ分けて残します。上の集計には入れていません。</p>
+      {oldJudged.length > 0 && (
+        <div class="scroll">
+          <table>
+            <thead><tr><th>判定した時刻</th><th>銘柄</th><th>モデル</th><th>予測</th><th>建てた値</th><th>判定の値</th><th>動き</th><th>結果</th></tr></thead>
+            <tbody>
+              {oldJudged.slice(0, 200).map((r: any) => (
+                <tr>
+                  <td>{jst(r.target_at)}</td>
+                  <td>{PAIR_LABEL[r.pair] ?? r.pair}</td>
+                  <td class="mono">{r.model}</td>
+                  <td><span class={`tag ${r.direction}`}>{DIRECTION_LABEL[r.direction]}</span></td>
+                  <td class="num">{yen(r.base_price)}</td>
+                  <td class="num">{yen(r.target_price)}</td>
+                  <td class={`num ${sign(r.move_pct)}`}>{pct(r.move_pct)}</td>
+                  <td>{r.hit === null ? '—' : r.hit ? '的中' : '外れ'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {oldDone.length > 0 && (
+        <div class="scroll" style="margin-top:18px">
+          <table>
+            <thead><tr><th>手仕舞った時刻</th><th>銘柄</th><th>モデル／規則</th><th>方向</th><th>建てた値</th><th>手仕舞った値</th><th>コスト前</th><th>コスト</th><th>コスト後</th></tr></thead>
+            <tbody>
+              {oldDone.slice(0, 200).map((t: any) => (
+                <tr>
+                  <td>{jst(t.close_at)}</td>
+                  <td>{PAIR_LABEL[t.pair] ?? t.pair}</td>
+                  <td class="mono">{t.model}／{t.rule ?? 'close-72h-v1'}</td>
+                  <td><span class={`tag ${t.direction}`}>{DIRECTION_LABEL[t.direction]}</span></td>
+                  <td class="num">{yen(t.entry)}</td>
+                  <td class="num">{yen(t.exit)}</td>
+                  <td class={`num ${sign(t.gross_pct)}`}>{pct(t.gross_pct)}</td>
+                  <td class="num muted">{t.cost_pct ? `−${t.cost_pct}%` : '—'}</td>
+                  <td class={`num ${sign(t.net_pct)}`}>{pct(t.net_pct)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p class="fine" style="margin-top:12px">前のモデルの玉を手仕舞うときは、いまの規則のコスト（銘柄ごとの手数料と、下なら建玉管理料）で計算します。</p>
+    </section>
+  )}
 </Base>

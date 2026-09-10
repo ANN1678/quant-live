@@ -14,6 +14,8 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
+    # bitbank が長く黙ると 1 URL に最大 66 秒かかる。60 URL で 1 時間を超えないように区切る
+    timeout-minutes: 30
     permissions:
       contents: write
     steps:
@@ -25,6 +27,8 @@ jobs:
       - name: エンジンを回す
         run: python engine/run.py
       - name: 記録を残す
+        # ⚠ push の前に必ず取り込む。checkout から push までの間に人が src/ を push すると弾かれ、
+        #    その回の記録が消える（data/ は Actions しか書かないので rebase で衝突しない）。
         run: |
           git config user.name "quant-live"
           git config user.email "info@ann1678.com"
@@ -33,7 +37,15 @@ jobs:
             echo "変わっていないので何もしない"
           else
             git commit -m "記録 $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M')"
-            git push
+            pushed=0
+            for i in 1 2 3; do
+              if git pull --rebase origin main && git push; then pushed=1; break; fi
+              git rebase --abort 2>/dev/null || true
+              echo "push できなかった（${i}回目）。取り込み直す"; sleep 5
+            done
+            if [ "$pushed" != 1 ]; then
+              echo "::error::3回とも push できなかった。この回の記録は残っていない"; exit 1
+            fi
           fi
 
   deploy:
