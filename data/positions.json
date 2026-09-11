@@ -1,28 +1,18 @@
 {
-  "btc_jpy": {
-    "close_at": "2026-09-11T19:00:00+09:00",
-    "close_t": 1789120800000,
-    "confidence": 0.85,
-    "direction": "down",
-    "entry": 12131953.0,
-    "id": "btc_jpy-1788861600000",
-    "model": "ema-cross-v1",
-    "open_at": "2026-09-08T19:00:00+09:00",
-    "open_t": 1788861600000,
-    "pair": "btc_jpy",
-    "unrealized_pct": 0.388
-  },
   "eth_jpy": {
-    "close_at": "2026-09-11T19:00:00+09:00",
-    "close_t": 1789120800000,
-    "confidence": 0.7303,
-    "direction": "down",
-    "entry": 383137.0,
-    "id": "eth_jpy-1788861600000",
-    "model": "ema-cross-v1",
-    "open_at": "2026-09-08T19:00:00+09:00",
-    "open_t": 1788861600000,
+    "close_at": "2026-09-14T22:00:00+09:00",
+    "close_t": 1789390800000,
+    "direction": "up",
+    "entry": 400926.0,
+    "id": "eth_jpy-1789131600000",
+    "model": "tsmom-vote-v2",
+    "open_at": "2026-09-11T22:00:00+09:00",
+    "open_t": 1789131600000,
+    "opened_at": "2026-09-11T23:35:41+09:00",
     "pair": "eth_jpy",
-    "unrealized_pct": 0.6
+    "quote_ok": true,
+    "rule": "long-carry-v2",
+    "seg": 1,
+    "signal_price": 403496.0
   }
 }
