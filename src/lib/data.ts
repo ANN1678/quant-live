@@ -33,15 +33,19 @@ export const predictions = readJsonl<any>('predictions.jsonl');
 export const results = readJsonl<any>('results.jsonl');
 export const trades = readJsonl<any>('trades.jsonl');
 
+// 表と札に出す名前。板と同じ書き方にする（2026-09-12 CEO指示）。
 export const PAIR_LABEL: Record<string, string> = {
-  btc_jpy: 'ビットコイン',
-  eth_jpy: 'イーサリアム',
+  btc_jpy: 'BTC/JPY',
+  eth_jpy: 'ETH/JPY',
 };
 
+// ⚠ LONG／SHORT にしない。この列は建玉の向きではなく、方向の予測だから。
+//    下と読んだ回もショートしていない（現物だけで、上と読んだ回しか買わない）。
+//    LONG／SHORT と書くと、やっていない売買をやったことにしてしまう。
 export const DIRECTION_LABEL: Record<string, string> = {
-  up: '上',
-  down: '下',
-  none: '見送り',
+  up: 'UP',
+  down: 'DOWN',
+  none: 'FLAT',
 };
 
 export function yen(n: number | null | undefined): string {

@@ -45,7 +45,7 @@ const dataset = {
   <section class="section">
     <span class="eyebrow"><span class="n">01</span> ／ 判定待ち　{open.length}件</span>
     <h2>まだ答えが出ていない予測</h2>
-    <p class="lead">7日前・14日前・28日前と比べて、何本が上がっているかを数えます。上が多ければ「上」、下が多ければ「下」、半々なら見送りです。</p>
+    <p class="lead">7日前・14日前・28日前と比べて、何本が上がっているかを数えます。上が多ければ UP、下が多ければ DOWN、半々なら FLAT です。</p>
     <div class="scroll">
       <table>
         <thead><tr><th>出した時刻</th><th>銘柄</th><th>予測</th><th>モデル</th><th>7・14・28日の向き</th><th>予測したときの値</th><th>判定する時刻</th></tr></thead>
@@ -172,7 +172,7 @@ const dataset = {
           </table>
         </div>
       )}
-      <p class="fine" style="margin-top:12px">前のモデルで持っていたものを売るときは、いまの規則の費用で計算します。銘柄ごとの手数料と、「下」で売っていた場合はその保有にかかる費用です。</p>
+      <p class="fine" style="margin-top:12px">前のモデルで持っていたものを売るときは、いまの規則の費用で計算します。銘柄ごとの手数料と、DOWN で売っていた場合はその保有にかかる費用です。</p>
     </section>
   )}
 </Base>
