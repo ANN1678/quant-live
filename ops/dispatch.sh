@@ -23,7 +23,10 @@
 #        chmod 700 ~/.config/quant-live && chmod 600 ~/.config/quant-live/github-token
 #   3. このファイルを ~/ops/dispatch.sh に置いて chmod +x
 #   4. cron に足す（毎時5分。足が閉じた直後に寄せてある）
-#        5 * * * * /home/<ユーザー>/ops/dispatch.sh >/dev/null 2>&1
+#      Xserver のサーバーパネル → サーバー → Cron設定 から入れた（2026-09-12）。
+#        分 5 ／ 時 * ／ 日 * ／ 月 * ／ 曜日 *
+#        $HOME/ops/dispatch.sh >> $HOME/dispatch-cron.log 2>&1
+#      自前の ~/dispatch.log とは別に、起動そのものに失敗したときの出力をここで拾う。
 #
 # ⚠ トークンには期限がある。切れたら合図が止まり、GitHub の予定実行（1日6回）だけに戻る。
 #    止まったことは alive ワークフローの「記録が古くなっていないか」が拾う。
