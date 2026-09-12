@@ -25,7 +25,7 @@ const id = `eq${Math.random().toString(36).slice(2, 8)}`;
     </linearGradient>
   </defs>
   {/* 元手の線。ここより上なら増えている */}
-  <line x1="0" x2={w} y1={y(start)} y2={y(start)} stroke="rgba(79,217,127,.35)" stroke-width="1"
+  <line x1="0" x2={w} y1={y(start)} y2={y(start)} stroke="rgba(255,255,255,.35)" stroke-width="1"
         stroke-dasharray="2 4" vector-effect="non-scaling-stroke" />
   <path d={area} fill={`url(#${id})`} />
   <path d={line} fill="none" stroke={color} stroke-width="1.6" stroke-linejoin="round"

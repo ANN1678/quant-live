@@ -1,52 +1,50 @@
 /* ANN のデザインの正本。
  *
- * 2026-09-12に地を黒へ反転した（CEO指示・マトリックス風）。
- * それまでの手本は block.xyz で、地は #fbfbfa の紙だった。
- * **白い地では、どんな配色にしてもデジタルに見えなかった。**青と橙、青とマゼンタの2組を試して
- * 2組とも外れている。効いていたのは色ではなく地の明暗のほうだった。
- * 字づかいと余白は block.xyz の実測値のまま残してある。変えたのは地と色だけ。
+ * 手本は **matrix.org**（2026-09-12に実測）。それまでは block.xyz だった。
+ *   純黒 #000 と 純白 #fff の2色。灰は #333／#999／#666 の3段だけ
+ *   見出し 40px・**ウェイト700**・行送り1.3・**字送りは詰めない**
+ *   本文 18px・行送り1.75
+ *   ボタンは完全な丸（半径1000px）・2pxの枠・padding 11px 36px・600
+ *   差し色は2つだけ。青 #0098d4（リンク）と 黄 #ffcb00（報せの帯）
+ *   節は白と黒の帯を交互にして、境目を曲線で切る
  *
- *   見出しは 64px・ウェイト500・行送り1.1・字送りは詰めない
- *   本文16px／小札は等幅の大文字に .12em の字送り／数字は見出しと同じ書体・同じ500
- *   節は罫で区切らない。空きだけで区切る（--gap）
- *   数字の上にだけ、その桁の幅の細い罫を1本引く
+ * ⚠ **2026-09-10の「太さを900に戻さない」は、見出し700までは解いた（2026-09-12 CEO指示）。**
+ *    手本が700だから。900には戻さない。野暮ったく見えた原因は、極太と「罫で囲んだ数字の格子」の
+ *    組み合わせだった。格子のほうは戻していない。数字はいまも罫1本の下に置く。
+ * ⚠ 見出しの字送りを詰めない（-0.02em を外した）。matrix.org は normal。
  *
- * ⚠ 太さを900に戻さない。極太の見出しと箱の格子が、前の作りが野暮ったく見えた原因。
  * ⚠ 書体は2つだけ。Inter（英数）と Zen Kaku Gothic New（かな漢字）。
  *    等幅のかな漢字は Zen Kaku へ落とす（--mono の末尾）。等幅のWebフォントは読み込まない。
  * ⚠ 地に縦の罫を敷かない。2026-09-12に88pxの方眼を試して、CEOの指示で外した。
  *
- * 色は3つで、それぞれ仕事は1つだけ。
- *   --ink   燐光の緑  機械の声。見出し・本文・罫・数字。ページのほとんどはこれ
- *   --up    全開の緑  上・プラス。地の文より明るいので、緑の中でも浮く
- *   --down  琥珀      下・マイナス。緑と琥珀は、どちらもブラウン管の蛍光体の色
+ * 色は4つで、それぞれ仕事は1つだけ。
+ *   --ink   #ffffff  字と罫
+ *   --up    #0098d4  上・プラス（matrix.org のリンクの青）。黒地で 6.6 の対比
+ *   --down  #ffcb00  下・マイナス（matrix.org の報せの帯の黄）。黒地で 13.0
+ *   --live  青       いま動いていること
  *
- * ⚠ **上下は、緑と琥珀だけでは赤緑の色覚で分かれない。**だから色を唯一の手がかりにしない。
- *    いまは次の3つで支えている。**外すと意味が読めなくなる。**
- *      1. 値には必ず符号をつける（pct() が + を足している）
- *      2. 札の中には UP／DOWN／FLAT の字を入れる
- *      3. 向きの3枠は、上を上へ・下を下へ寄せる。色が見えなくても位置で読める
- * ⚠ 黒地では、明るい色をそのまま字に置ける。白地のときの「明るい色は字にできない」制約は無い。
- *    だから --down-lit は面を少し持ち上げるためだけに残してある。
+ * ⚠ 青と黄は、赤緑の色覚でも分かれる。緑と琥珀（2026-09-12の前の組）では分かれなかった。
+ *    それでも色を唯一の手がかりにしない。符号・札の中の UP/DOWN/FLAT の字・
+ *    向きの3枠の上下の寄せ、の3つで支えている。
  */
 
 :root {
-  --paper: #020604;
-  --surface: #050b07;
-  --band: #09120b;
-  --ink: #4fd97f;
-  --muted: #37a15f;
-  --faint: #256f43;
-  --rule: rgba(79, 217, 127, .26);
-  --rule-soft: rgba(79, 217, 127, .12);
+  --paper: #000000;
+  --surface: #000000;
+  --band: #161616;
+  --ink: #ffffff;
+  --muted: #999999;
+  --faint: #666666;
+  --rule: rgba(255, 255, 255, .24);
+  --rule-soft: rgba(255, 255, 255, .11);
 
-  --up: #00ff5a;
-  --down: #ffb454;
-  --down-lit: #ffc880;
-  --flat: #37a15f;
-  --live: #00ff5a;
-  --live-lit: #6bff9e;
-  --mark: rgba(0, 255, 90, .3);
+  --up: #0098d4;
+  --down: #ffcb00;
+  --down-lit: #ffcb00;
+  --flat: #999999;
+  --live: #0098d4;
+  --live-lit: #4fc3f7;
+  --mark: rgba(255, 203, 0, .42);
 
   --sans: "Inter", "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
   /* ⚠ 末尾の Zen Kaku を外さない。等幅にかな漢字が来たとき、ここが無いと書体が3つになる */
@@ -71,10 +69,10 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 400;
-  line-height: 1.9;
-  letter-spacing: .004em;
+  line-height: 1.8;
+  letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   word-break: auto-phrase;
@@ -84,14 +82,14 @@ body {
 a {
   color: inherit;
   text-decoration: underline;
-  text-decoration-color: rgba(79, 217, 127, .45);
+  text-decoration-color: rgba(255, 255, 255, .45);
   text-decoration-thickness: 1px;
   text-underline-offset: .24em;
   transition: text-decoration-color .15s;
 }
 a:hover { text-decoration-color: var(--ink); }
 
-::selection { background: rgba(0, 255, 90, .28); color: var(--paper); }
+::selection { background: var(--up); color: #ffffff; }
 :focus-visible { outline: 2px solid var(--up); outline-offset: 3px; }
 
 .wrap { max-width: var(--w); margin: 0 auto; padding: 0 var(--frame); }
@@ -99,7 +97,7 @@ a:hover { text-decoration-color: var(--ink); }
 /* ── 黒帯。機械が動いていることを、いちばん上で1行だけ言う ───────────── */
 .statusbar {
   background: #000000;
-  color: rgba(79, 217, 127, .62);
+  color: rgba(255, 255, 255, .62);
   border-bottom: 1px solid var(--rule-soft);
   font-family: var(--mono);
   font-size: 11px;
@@ -118,13 +116,13 @@ a:hover { text-decoration-color: var(--ink); }
 .statusbar .live i {
   display: inline-block; width: 6px; height: 6px; margin-right: 9px;
   background: var(--live-lit); border-radius: 50%; vertical-align: .04em;
-  box-shadow: 0 0 0 0 rgba(0, 255, 90, .7);
+  box-shadow: 0 0 0 0 rgba(0, 152, 212, .7);
   animation: beat 2.4s ease-out infinite;
 }
 @keyframes beat {
-  0% { box-shadow: 0 0 0 0 rgba(0, 255, 90, .55); }
-  70% { box-shadow: 0 0 0 8px rgba(0, 255, 90, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(0, 255, 90, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(79, 195, 247, .55); }
+  70% { box-shadow: 0 0 0 8px rgba(79, 195, 247, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(79, 195, 247, 0); }
 }
 /* 秒まで出す時計は右端に置く。幅が足りないときは落とす */
 .statusbar .clock { margin-left: auto; }
@@ -194,31 +192,31 @@ main { padding: 0 0 120px; }
 h1, h2, h3 { color: var(--ink); text-wrap: balance; }
 
 h1, .display {
-  font-size: clamp(31px, 4.6vw, 60px);
-  font-weight: 500;
-  line-height: 1.14;
-  letter-spacing: -.022em;
+  font-size: clamp(32px, 4.4vw, 56px);
+  font-weight: 700;
+  line-height: 1.24;
+  letter-spacing: 0;
   margin: 0 0 22px;
   max-width: 18em;
 }
 h2 {
-  font-size: clamp(24px, 2.9vw, 38px);
-  font-weight: 500;
-  line-height: 1.28;
-  letter-spacing: -.02em;
+  font-size: clamp(25px, 2.9vw, 40px);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0;
   margin: 0 0 20px;
   max-width: 22em;
 }
 h3 {
-  font-size: 18px; font-weight: 700; line-height: 1.6;
-  letter-spacing: -.008em; margin: 38px 0 10px;
+  font-size: 20px; font-weight: 700; line-height: 1.5;
+  letter-spacing: 0; margin: 38px 0 10px;
 }
 p { margin: 0 0 18px; max-width: var(--measure); }
 strong { font-weight: 700; }
 
 .lead {
-  font-size: clamp(16.5px, 1.4vw, 18px);
-  line-height: 1.9;
+  font-size: 18px;
+  line-height: 1.75;
   color: var(--ink);
   margin: 0 0 10px;
   max-width: var(--measure);
@@ -262,7 +260,7 @@ strong { font-weight: 700; }
 .num { font-variant-numeric: tabular-nums; letter-spacing: -.01em; font-feature-settings: var(--figs); }
 
 .readout {
-  font-weight: 500;
+  font-weight: 700;
   font-size: clamp(52px, 8.4vw, 104px);
   line-height: 1; letter-spacing: -.035em;
   font-variant-numeric: tabular-nums;
@@ -300,7 +298,7 @@ strong { font-weight: 700; }
 }
 .stat .k { font-family: var(--mono); text-transform: uppercase; letter-spacing: .12em; font-size: 11.5px; font-weight: 400; }
 .stat .v {
-  font-weight: 500;
+  font-weight: 700;
   font-size: clamp(34px, 3.6vw, 46px); line-height: 1.1; letter-spacing: -.032em;
   font-variant-numeric: tabular-nums; font-feature-settings: var(--figs);
   color: var(--ink);
@@ -339,7 +337,7 @@ strong { font-weight: 700; }
 .gate-top .kj { font-size: 13px; color: var(--muted); }
 .gate-n { font-size: 13px; color: var(--muted); white-space: nowrap; }
 .gate-n b {
-  font-weight: 500; font-size: 27px; color: var(--ink);
+  font-weight: 700; font-size: 27px; color: var(--ink);
   letter-spacing: -.02em; margin-right: 4px;
 }
 
@@ -370,7 +368,7 @@ strong { font-weight: 700; }
 /* ── 向きの3枠（7・14・28日） ────────────────────────────────────────── */
 /* 色だけで分けない。上は上へ、下は下へ寄せるので、位置でも読める */
 .votes { display: inline-flex; gap: 3px; vertical-align: -.24em; }
-.votes i { position: relative; display: block; width: 9px; height: 16px; background: rgba(79, 217, 127, .13); }
+.votes i { position: relative; display: block; width: 9px; height: 16px; background: rgba(255, 255, 255, .12); }
 .votes i::after { content: ''; position: absolute; left: 0; right: 0; height: 7px; }
 .votes i.up::after { top: 0; background: var(--up); }
 .votes i.down::after { bottom: 0; background: var(--down-lit); }
@@ -421,7 +419,7 @@ td.ts {
   font-variant-numeric: tabular-nums; font-feature-settings: var(--figs);
 }
 td.up { color: var(--up); } td.down { color: var(--down); }
-tbody tr:hover td { background: rgba(0, 255, 90, .06); }
+tbody tr:hover td { background: rgba(255, 255, 255, .05); }
 
 /* ── 札 ─────────────────────────────────────────────────────────────── */
 /* ⚠ 輪郭ではなく塗りにしている。紙の上では、字に置ける色の明るさに限りがある
@@ -434,15 +432,15 @@ tbody tr:hover td { background: rgba(0, 255, 90, .06); }
   border: 1px solid var(--rule); background: transparent;
   color: var(--muted); white-space: nowrap;
 }
-.tag.up { background: rgba(0, 255, 90, .14); border-color: var(--up); color: var(--up); }
-.tag.down { background: rgba(255, 180, 84, .14); border-color: var(--down); color: var(--down-lit); }
+.tag.up { background: rgba(0, 152, 212, .18); border-color: var(--up); color: #4fc3f7; }
+.tag.down { background: rgba(255, 203, 0, .16); border-color: var(--down); color: var(--down); }
 .tag.none { color: var(--faint); }
 
 /* ── 次へ進む枠 ──────────────────────────────────────────────────────── */
 .cta {
   display: inline-flex; align-items: center; gap: 12px;
-  border: 1px solid var(--ink); border-radius: 999px;
-  padding: 11px 22px; font-size: 14px; font-weight: 500; letter-spacing: .02em;
+  border: 2px solid var(--ink); border-radius: 1000px;
+  padding: 11px 34px; font-size: 17px; font-weight: 600; letter-spacing: 0;
   text-decoration: none; color: var(--ink);
   transition: background .16s, color .16s;
 }
@@ -460,7 +458,7 @@ tbody tr:hover td { background: rgba(0, 255, 90, .06); }
 }
 .field label .req {
   margin-left: 10px; padding: 1px 7px; border-radius: 2px;
-  background: var(--up); color: var(--paper); letter-spacing: .06em; font-size: 10px;
+  background: var(--ink); color: var(--paper); letter-spacing: .06em; font-size: 10px;
 }
 /* ⚠ 囲みの箱にしない。下に1本ひくだけ。数字の欄と同じ作りにそろえる */
 .field input, .field textarea {
@@ -490,8 +488,8 @@ button.cta { background: transparent; font-family: inherit; cursor: pointer; }
 .warn { border-left-color: var(--down); }
 /* 式とコードは端末の画面にする。⚠ 黒地では沈めない。地より少し明るくして塊に見せる */
 .formula, .prose pre {
-  background: #0b160e;
-  color: var(--up);
+  background: #161616;
+  color: var(--ink);
   font-family: var(--mono);
   overflow-x: auto;
   max-width: var(--measure);
@@ -511,7 +509,7 @@ button.cta { background: transparent; font-family: inherit; cursor: pointer; }
 .rows { border-top: 1px solid var(--ink); }
 .rows > * { border-bottom: 1px solid var(--rule); padding: 26px 0; }
 .rows a.t {
-  font-size: 21px; font-weight: 500; letter-spacing: -.02em;
+  font-size: 22px; font-weight: 700; letter-spacing: 0;
   color: var(--ink); text-decoration: none; line-height: 1.5;
 }
 .rows a.t:hover { text-decoration: underline; text-underline-offset: .2em; }
@@ -551,8 +549,8 @@ footer.site {
 }
 footer.site nav { display: flex; flex-wrap: wrap; gap: 12px; }
 footer.site nav a {
-  display: inline-block; border: 1px solid var(--ink); border-radius: 999px;
-  padding: 8px 18px; font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
+  display: inline-block; border: 2px solid var(--ink); border-radius: 1000px;
+  padding: 8px 22px; font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
   color: var(--ink); text-decoration: none;
   transition: background .16s, color .16s;
 }
