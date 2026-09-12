@@ -13,12 +13,13 @@ const btSame = !backtest || !summary?.model || (backtest.model === summary.model
 const hasAvg = gate?.avg_net_pct !== null && gate?.avg_net_pct !== undefined;
 const perPair = Object.entries(gate?.per_pair ?? {}) as [string, any][];
 const sign = (n: number | null | undefined) => (n === null || n === undefined ? 'flat' : n > 0 ? 'up' : n < 0 ? 'down' : 'flat');
+const firstCheck = gate?.checkpoints?.[0] ?? 50;
 // まだ1件も終わっていないとき、いつ最初の1件が出るかを言うために使う
 const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
 ---
 <Base
   title="ANN｜ビットコインの予測と仮想売買の記録を全部公開"
-  description="ビットコインとイーサリアムが72時間後に上がるか下がるかを1時間ごとに予測し、そのとおりに売買したことにして損得を数えています。当たった回も外した回も全件そのまま公開。実際のお金を出す条件も数字で置いています。"
+  description="ビットコインとイーサリアムが72時間後に上がるか下がるかを1時間ごとに予測し、そのとおりに売買したことにして損得を数えています。当たった回も外した回も全件そのまま公開。実際のお金を出す条件も数字で書いています。"
 >
   <div class="hero">
     <span class="eyebrow"><span class="n">LIVE</span> ／ 1時間ごとに書き換えています</span>
@@ -29,23 +30,23 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
   <section class="section">
     <span class="eyebrow"><span class="n">01</span> ／ 仕組み</span>
     <h2>何をしているか</h2>
-    <p class="lead">やることは3つです。予測を書く。仮想で買う。72時間後に数える。これを1時間ごとに繰り返しています。</p>
+    <p class="lead">やることは3つです。予測を書く。仮想で買う。3日後に数える。これを1時間ごとに繰り返しています。</p>
 
     <div class="stats c3">
       <div class="stat">
         <div class="kj">1　予測する</div>
-        <div class="v long">3日後の向きを決める</div>
+        <div class="v long">上がるか下がるかを決める</div>
         <div class="n">ビットコインとイーサリアムが72時間後に上がるか下がるかを、1時間ごとに決めます。決めきれない回は見送りにします。答えが出る前に、公開のリポジトリへ書き込みます。</div>
       </div>
       <div class="stat">
         <div class="kj">2　仮想で買う</div>
-        <div class="v long">「上」のときだけ買う</div>
-        <div class="n">仮想の資金は100万円から始めました。1回に使うのはその10%です。取引所に注文は出していない。手数料と、板とのずれで損する分は、多めに見て引きます。</div>
+        <div class="v long">上がると読んだ回だけ買う</div>
+        <div class="n">仮想の資金は100万円から始めました。1回に使うのはその10%です。取引所に注文は出していない。手数料と、思った値で買えないぶんを、多めに見て引きます。</div>
       </div>
       <div class="stat">
         <div class="kj">3　数える</div>
-        <div class="v long">72時間後に損得を出す</div>
-        <div class="n">予測が当たったかを判定します。そのときまだ「上」と出ていれば、閉じずに持ち越します。1回あたりいくら増えたかを積み上げます。</div>
+        <div class="v long">3日後に答え合わせをする</div>
+        <div class="n">当たったか外したかを記録します。そのときもまだ上がると読んでいれば、売らずに持ち続けます。1回あたりいくら増えたかを数えます。</div>
       </div>
     </div>
 
@@ -53,12 +54,12 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
   </section>
 
   <section class="section">
-    <span class="eyebrow"><span class="n">02</span> ／ 判断の線</span>
+    <span class="eyebrow"><span class="n">02</span> ／ 決め方</span>
     <h2>実際のお金を出す条件</h2>
-    <p class="lead">いまは1円も動かしていない。売買を400回まで積んで、1回あたりの損得が偶然では説明できないほどプラスに寄っていたら、そこで初めて実際のお金を出します。<strong>的中率では決めない。</strong>外すほうが多くても、勝った回の値幅が大きければ資金は増えるからです。</p>
+    <p class="lead">いまは1円も動かしていない。売買を400回まで数えて、1回あたりの損得がまぐれでは説明できないほどプラスなら、そこで初めて実際のお金を出します。<strong>的中率では決めない。</strong>外すほうが多くても、勝った回の値幅が大きければ資金は増えるからです。</p>
 
     <div class="panel" style="margin-top:38px">
-      <span class="eyebrow">1回あたりの平均損益（手数料とすべりを引いた後）</span>
+      <span class="eyebrow">1回あたりの平均損益（手数料などを引いた後）</span>
       {hasAvg ? (
         <p class="readout" style={sign(gate?.avg_net_pct) === 'up' ? 'color:var(--up)' : sign(gate?.avg_net_pct) === 'down' ? 'color:var(--down)' : ''}>
           {pct(gate.avg_net_pct, 3)}
@@ -71,14 +72,14 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
         {perPair.length === 0 ? (
           <>
             <div class="stat">
-              <div class="kj">積み上がった売買</div>
+              <div class="kj">終わった売買</div>
               <div class="v">0<span class="unit">件</span></div>
               <div class="n">同時に持つのは1銘柄につき1つだけです。72時間ごとに見直します</div>
             </div>
             <div class="stat">
               <div class="kj">次の検査</div>
-              <div class="v">{gate?.checkpoints?.[0] ?? 50}<span class="unit">件</span></div>
-              <div class="n">ビットコインとイーサリアムを、別々に数えます</div>
+              <div class="v">{firstCheck}<span class="unit">件</span></div>
+              <div class="n">ビットコインで{firstCheck}件、イーサリアムで{firstCheck}件たまったら検査します</div>
             </div>
           </>
         ) : perPair.map(([pair, v]: [string, any]) => (
@@ -88,7 +89,7 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
             <div class="progress" role="img" aria-label={`${PAIR_LABEL[pair] ?? pair} ${v.trades} 件。次の検査は ${v.next_checkpoint ?? '無し'} 件`}>
               <i style={`width:${v.next_checkpoint ? Math.min(100, (v.trades / v.next_checkpoint) * 100) : 100}%`}></i>
             </div>
-            <div class="n">いまの t {v.t ?? '—'}（参考。合格の線は {gate?.threshold_t ?? 2.36}）{v.passed ? '・合格' : v.finished ? '・4回とも不合格' : ''}</div>
+            <div class="n">いまの t {v.t ?? '—'}（参考。合格は {gate?.threshold_t ?? 2.36} から）{v.passed ? '・合格' : v.finished ? '・4回とも不合格' : ''}</div>
             {v.verdicts?.length > 0 && (
               <div class="n">{v.verdicts.map((d: any) => `${d.n}件で検査 t ${d.t} ${d.passed ? '合格' : '不合格'}（${jst(d.at)}）`).join('　')}</div>
             )}
@@ -96,33 +97,34 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
         ))}
       </div>
 
-      <p class="fine" style="margin:34px 0 0">偶然かどうかは <span class="mono">t</span> という値で見ます。1回あたりの平均を、ばらつきの大きさと件数で割り戻した数字です。平均がプラスでも、件数が少ないうちや、ばらつきが大きいうちは t が小さいままになります。<strong>t が {gate?.threshold_t ?? 2.36} 以上で合格です。</strong></p>
-      <p class="fine" style="margin:14px 0 0">検査は銘柄ごとに、件数が50・100・200・400に達したときの4回だけです。毎時見て最初に線を越えた瞬間を合格にすると、優位が無くても3割から4割は合格させてしまうからです。逆に、1件あたり+0.5%ほどの優位が本当にあっても、400件で見つかる確率は4割ほどです。見つからなくても、優位が無いとは言い切れない。数え方と決まりは<a href="/method/">やり方</a>に全部書きました。</p>
+      <p class="fine" style="margin:34px 0 0">まぐれかどうかは <span class="mono">t</span> という数で見ます。勝った幅が大きいほど、ばらつきが小さいほど、件数が多いほど t は大きくなります。平均がプラスでも、件数が少なければ t は小さいままです。<strong>t が {gate?.threshold_t ?? 2.36} 以上で合格にします。</strong></p>
+      <p class="fine" style="margin:14px 0 0">逆もあります。この予測が本当に効いていても、400件のうちに気づけるのは4割ほどです。不合格でも、効いていないと決まったわけではない。数え方は<a href="/method/">やり方</a>に全部書きました。</p>
+      <p class="fine" style="margin:14px 0 0">検査するのは4回だけです。ビットコインとイーサリアムのそれぞれで、50件・100件・200件・400件たまったときに見ます。毎時間ながめて、いちばん成績のいいときに合格を出すこともできます。それをやると、まぐれでも3回に1回は合格が出てしまう。だから見る回数を先に決めました。</p>
     </div>
   </section>
 
   <section class="section">
     <span class="eyebrow"><span class="n">03</span> ／ 取引</span>
-    <h2>いま建てている取引</h2>
+    <h2>いま買っているもの</h2>
     {open.length === 0 ? (
-      <p class="empty">いまは何も建てていません。予測が「下」か「見送り」のときは買わないからです。次の判断は、次の1時間足が終わったときに出します。</p>
+      <p class="empty">いまは何も買っていません。下がる、または決めきれない、と読んだときは買わないからです。次に決めるのは、次の1時間が終わったときです。</p>
     ) : (
       <div class="stats c2">
         {open.map((p: any) => (
           <div class="stat">
             <div class="kj">{PAIR_LABEL[p.pair] ?? p.pair}　<span class={`tag ${p.direction}`}>{DIRECTION_LABEL[p.direction]}</span></div>
             <div class={`v ${sign(p.unrealized_pct)}`}>{pct(p.unrealized_pct, 2)}</div>
-            <div class="n">{yen(p.entry)}円で買ったことにしています。{jst(p.close_at)}に、閉じるか持ち越すかを決めます{p.seg > 1 ? `（${p.seg}区間目）` : ''}</div>
+            <div class="n">{yen(p.entry)}円で買ったことにしています。{jst(p.close_at)}に、売るか持ち続けるかを決めます{p.seg > 1 ? `（${p.seg}回目の持ち越し）` : ''}</div>
           </div>
         ))}
       </div>
     )}
-    <p class="fine" style="margin-top:24px">いま画面に出ている損得は、まだ確定していない。閉じた時点で記録に入ります。</p>
+    <p class="fine" style="margin-top:24px">いま出ている損得は、まだ確定していない。売った時点で記録に入ります。</p>
   </section>
 
   <section class="section">
     <span class="eyebrow"><span class="n">04</span> ／ 相場</span>
-    <h2>いまの値段</h2>
+    <h2>ビットコインとイーサリアムの値段</h2>
     <div class="stats c2">
       {pairs.map(([key, v]) => (
         <div class="stat">
@@ -140,8 +142,8 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
 
   <section class="section">
     <span class="eyebrow"><span class="n">05</span> ／ 成績</span>
-    <h2>いまの数字</h2>
-    <p class="lead">的中率は、出した予測が当たった割合です。勝率は、実際に建てた取引が手数料を引いた後でプラスだった割合です。予測は1時間ごとに出しますが、買うのは前の取引が終わっていて「上」と出たときだけなので、2つの件数はそろいません。</p>
+    <h2>いまの成績</h2>
+    <p class="lead">的中率は、出した予測が当たった割合です。勝率は、実際に買った取引が手数料を引いた後でプラスだった割合です。予測は1時間ごとに出します。買うのは前の取引が終わっていて、上がると読んだときだけです。だから2つの件数はそろいません。</p>
     <div class="stats c4">
       <div class="stat">
         <div class="kj">予測の的中率</div>
@@ -196,10 +198,10 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
 
   {backtest && btSame && (
     <section class="section">
-      <span class="eyebrow"><span class="n">07</span> ／ 当てはめ</span>
-      <h2>過去に当てはめた結果</h2>
+      <span class="eyebrow"><span class="n">07</span> ／ 過去で試す</span>
+      <h2>過去の相場で試した結果</h2>
       <div class="note warn">
-        ここから下は<strong>事前に公開した予測ではありません。</strong>いまのモデル <span class="mono">{backtest.model}</span> と規則 <span class="mono">{backtest.rule}</span> を、過去{backtest.days}日の足に後から通しただけです。後から当てはめた成績は、実際に出した予測より良く見えるのがふつうです。上の数字とは別のものとして読んでください。過去には気配の記録が無いので、その足の終値で約定したことにしています。
+        ここから下は<strong>事前に公開した予測ではありません。</strong>いまのモデル <span class="mono">{backtest.model}</span> と規則 <span class="mono">{backtest.rule}</span> を、過去{backtest.days}日の相場に後から通しただけです。後から試した成績は、これから出す予測より良く見えるのがふつうです。上の数字とは別のものとして読んでください。過去には売り買いの注文の記録が残っていないので、その1時間の終値で売買したことにしています。
       </div>
       <div class="scroll">
         <table>
@@ -222,7 +224,7 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
         </table>
       </div>
       <p class="fine" style="margin-top:20px">
-        いちばん右の隣に、予測を使わず<strong>ずっと買ったまま持っただけ</strong>の成績を並べました。上がり相場では、これだけでも増える。だから予測が足したものは、その差で読んでください。この4年には、モデルを選ぶのに使った期間が入っています。だからこの表は事前の検証ではなく、素性を見るためのものです。<strong>優位があるかどうかは、上の関門で決めます。</strong>
+        表の右のほうに、予測を使わず<strong>ずっと買ったまま持ち続けた</strong>成績も並べました。上がり相場なら、これだけでも資金は増える。<strong>予測で増えたぶんは、2つの差です。</strong>この4年には、モデルを選ぶのに使った期間が入っています。だからこの表を見て勝てるとは言えません。ここで見るのは、どんなクセがあるかだけです。本当に効いているかは、上の検査で決めます。
       </p>
     </section>
   )}
