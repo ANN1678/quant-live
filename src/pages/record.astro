@@ -13,6 +13,13 @@ const oldJudged = results.filter((r) => !isCur(r)).sort((a, b) => b.target_t - a
 const oldDone = trades.filter((t) => !isCurTrade(t)).sort((a, b) => b.close_t - a.close_t);
 const oldModels = [...new Set([...oldJudged.map((r) => r.model), ...oldDone.map((t) => `${t.model}／${t.rule ?? 'close-72h-v1'}`)])];
 const sign = (n: number | null | undefined) => (n === null || n === undefined ? '' : n > 0 ? 'up' : n < 0 ? 'down' : '');
+// 7・14・28日の値動きの多数決。票の合計だけ見せても意味が伝わらないので、何本が上かに直す。
+const votes = (p: any) => {
+  const r = p.reason ?? {};
+  const n = Object.keys(r).filter((k) => k.endsWith('_pct')).length;
+  if (!n || r.votes === undefined) return '—';
+  return `${n}本のうち${(n + r.votes) / 2}本が上`;
+};
 
 // 記録そのものを構造化データにしておく。これが商品なので、検索側にも「何の記録か」を渡す。
 const dataset = {
@@ -44,9 +51,10 @@ const dataset = {
   <section class="section">
     <span class="eyebrow"><span class="n">01</span> ／ 判定待ち　{open.length}件</span>
     <h2>まだ答えが出ていない予測</h2>
+    <p class="lead">7日前・14日前・28日前と比べて、何本が上がっているかを数えます。上が多ければ「上」、下が多ければ「下」、半々なら見送りです。</p>
     <div class="scroll">
       <table>
-        <thead><tr><th>出した時刻</th><th>銘柄</th><th>予測</th><th>モデル</th><th>予測の根拠</th><th>予測したときの値</th><th>判定する時刻</th></tr></thead>
+        <thead><tr><th>出した時刻</th><th>銘柄</th><th>予測</th><th>モデル</th><th>7・14・28日の向き</th><th>予測したときの値</th><th>判定する時刻</th></tr></thead>
         <tbody>
           {open.length === 0 && <tr><td colspan="7" class="muted">ありません。</td></tr>}
           {open.slice(0, 40).map((p: any) => (
@@ -55,7 +63,7 @@ const dataset = {
               <td>{PAIR_LABEL[p.pair] ?? p.pair}</td>
               <td><span class={`tag ${p.direction}`}>{DIRECTION_LABEL[p.direction]}</span></td>
               <td class="mono">{p.model}</td>
-              <td class="num">{p.confidence ? `自信 ${p.confidence.toFixed(2)}` : p.reason?.votes !== undefined ? `票 ${p.reason.votes > 0 ? '+' : ''}${p.reason.votes}` : '—'}</td>
+              <td class="num">{votes(p)}</td>
               <td class="num">{yen(p.base_price)}</td>
               <td>{jst(p.target_at)}</td>
             </tr>
