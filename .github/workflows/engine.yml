@@ -1,11 +1,15 @@
 name: 予測を出して記録する
 
 on:
+  # ⚠ **これは予備です。本命は Xserver の cron から叩く workflow_dispatch。**
+  #    GitHubの予定実行は来ません。2026-09-12の実測で 80.3時間に22回（27%）でした。
+  #    分を動かしても変わりません（:05 で28%、:37 で27%）。GitHub側の後回しなので、こちらでは直せない。
+  #    合図は ops/dispatch.sh がサーバーから毎時出します。こちらは、そのサーバーが止まったときの保険です。
+  #
+  #    毎時5分（UTC）。合図の時刻を足が閉じた直後に寄せてある。
+  #    予測の材料は「前の1時間の足」なので、:37 まで待つ意味が無い。待つと建て値が足の終値から離れる。
   schedule:
-    # 毎時37分（UTC）。GitHubの予定実行は毎時0分前後がいちばん混み、混むと遅れ、混みすぎると飛ばされる。
-    # 5分に置いていた 2026-09-09〜10 の実測は 35時間で10回（28%）、来た回も15〜32分遅れ。
-    # GitHub が勧めるとおり 0分から離した。それでも毎時の保証は無い。
-    - cron: '37 * * * *'
+    - cron: '5 * * * *'
   workflow_dispatch:
 
 # 同時に走らせない。走らせると同じ予測が二重に入る。
@@ -55,46 +59,3 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/deploy.yml
-
-  # 外形チェックは最後に、別のジョブでやる。
-  # ⚠ 検査が本業を止めてはいけない。2026-09-08にこれを記録より前へ置いて、
-  #    チェックが1回タイムアウトしただけでその回の予測が保存されなかった。
-  alive:
-    needs: [run, deploy]
-    # ⚠ **エンジンが落ちても必ず走らせる。**
-    #    2026-09-09にエンジンが9時間落ち続けたとき、この検査が一緒に飛ばされたので、
-    #    サイトは200を返しながら古い数字を出したままだった。落ちたときこそ鳴らす必要がある。
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: 本番が生きているか外から見る
-        run: |
-          for i in 1 2 3 4 5; do
-            code=$(curl -sS -o /tmp/live.html -m 45 --retry 2 --retry-delay 5 \
-                        -A 'quant-live-uptime/1.0 (+https://ann1678.com/)' \
-                        -w '%{http_code}' https://ann1678.com/ || echo 000)
-            echo "試行 ${i}: HTTP ${code}"
-            if [ "${code}" = "200" ] && grep -q 'ann-render-ok' /tmp/live.html; then
-              echo "生きている"; exit 0
-            fi
-            sleep 20
-          done
-          echo "::error::ann1678.com に5回届かなかった（または中身の印が無い）"
-          exit 1
-
-      - name: 記録が古くなっていないか
-        # サイトが生きていることと、記録が動いていることは別。
-        # 200を返しながら中身が止まっているのが、いちばん気づきにくい壊れ方。
-        run: |
-          curl -sS -m 30 -o /tmp/summary.json \
-            https://raw.githubusercontent.com/${{ github.repository }}/main/data/summary.json
-          python3 - <<'PY'
-          import json, datetime as dt, sys
-          s = json.load(open("/tmp/summary.json"))
-          t = dt.datetime.fromisoformat(s["generated_at"])
-          age = (dt.datetime.now(t.tzinfo) - t).total_seconds() / 3600
-          print(f"最後の記録: {s['generated_at']}（{age:.1f}時間前）／ 予測 {s['made']}件")
-          if age > 3:
-              print(f"::error::記録が{age:.1f}時間止まっている。エンジンが動いていない")
-              sys.exit(1)
-          PY

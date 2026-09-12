@@ -9,6 +9,9 @@
   6. 集計し直す
 
 ⚠ 3を2より先にやってはいけない。結果を見てから予測を書ける形にすると、記録の意味が消える。
+⚠ **約定の値は足の終値で決める（long-carry-v3）。**建ては合図にした足、手仕舞いは期限の足。
+   run が何時に走っても同じ値が書かれる。実際に板にあった気配は entry_actual / exit_actual に並べて残す。
+   遅れは late_minutes に入る。詳しくは paper.py の頭。
 ⚠ predictions.jsonl と results.jsonl と trades.jsonl と gate.jsonl は追記だけにする。書き換えない。
    git の履歴が「いつ書いたか」の証明になっている。上書きすると証明が消える。
 ⚠ 1銘柄が落ちても、もう1銘柄の記録は残す。落ちた銘柄は次の回に判定と手仕舞いをやり直す（どちらも冪等）。
@@ -31,10 +34,34 @@ from common import (HOUR_MS, MARKET, POSITIONS, PREDICTIONS, RESULTS, TRADES, ap
 HORIZON_MS = strategy.HORIZON_HOURS * HOUR_MS
 # 28日ぶんの助走に、足の欠けと当日ぶんの余裕を足す
 WARMUP_DAYS = strategy.NEED_HOURS // 24 + 3
+# 期限の足が取れないまま何日たったら、気配で約定したことにするか。予測の判定（7日）と合わせる
+GIVE_UP_MS = 7 * 24 * HOUR_MS
 
 
 def hour_start_ms(dt: datetime) -> int:
     return int(dt.replace(minute=0, second=0, microsecond=0).timestamp() * 1000)
+
+
+def rule_fill(by_t: dict, t: int, actual: float, this_hour: int, *, old_rule: bool,
+              what: str) -> tuple[float | None, str]:
+    """規則の約定値を返す。その時刻の足の終値を使う。2つめの返り値は、どちらを使ったかの印。
+
+    ⚠ **足は時刻で決まるので、run が遅れても同じ値になる。**この記録を外の人が bitbank の公開APIで
+       検算できるのは、ここが時刻に依らないからで、いちばん守りたい性質。気配に戻してはいけない。
+       2026-09-11に気配で書いていて、4時間半の遅れが手仕舞い2件の符号を裏返した。
+
+    old_rule : 前の版（long-carry-v2）の玉。その版の決まりどおり気配で閉じる。台帳を混ぜない
+    """
+    if old_rule:
+        return actual, "ticker"
+    c = by_t.get(t)
+    if c is not None:
+        return c["c"], "candle"
+    if t + GIVE_UP_MS < this_hour:
+        # 取引所が7日たっても足を返さない。閉じられないまま残すほうが害が大きいので、気配で閉じて印を残す
+        print(f"::warning::{what} は期限の足が7日たっても無い。気配で閉じた")
+        return actual, "ticker"
+    return None, "none"
 
 
 def run_pair(pair: str, *, n: datetime, this_hour: int, preds: list[dict], settled: set[str],
@@ -51,7 +78,9 @@ def run_pair(pair: str, *, n: datetime, this_hour: int, preds: list[dict], settl
         raise market.MarketError(f"{pair}: 終わった足が無い")
     base = closed[-1]
 
-    # 気配。約定はこの値でしたことにする。取れなければ最後に閉じた足の終値で代える（記録に quote_ok=false が残る）
+    # 気配。**約定の値には使わない。**規則の約定値は足の終値（rule_fill）で、run した時刻に左右されない。
+    # ここで取るのは「そのとき実際に板にあった値」で、entry_actual / exit_actual と表示に回す。
+    # 取れなければ最後に閉じた足の終値で代える（記録に quote_ok=false が残る）
     try:
         t = market.ticker(pair)
         bid, ask, last, quote_ok = t["buy"], t["sell"], t["last"], True
@@ -119,53 +148,77 @@ def run_pair(pair: str, *, n: datetime, this_hour: int, preds: list[dict], settl
         same = (bool(call) and call["direction"] == pos["direction"] and pos["direction"] in paper.TRADE_DIRECTIONS
                 and pos.get("rule") == paper.RULE and pos.get("model") == call["model"])
         seg_id = f"{pos['id']}-{seg}"
-        if same:
-            exit_px, closes = last, False
+        closes = not same
+        # 実際に板にあった値。規則の値との差が「実行のずれ」になる。消さずに横へ残す
+        actual = last if same else (bid if pos["direction"] == "up" else ask)
+        exit_px, fill_source = rule_fill(by_t, pos["close_t"], actual, this_hour,
+                                         old_rule=(pos.get("rule") != paper.RULE), what=seg_id)
+        if exit_px is None:
+            print(f"::warning::{pair}: 期限 {at(pos['close_t'])} の足がまだ取れない。この回は閉じずに次へ回す")
         else:
-            exit_px, closes = (bid if pos["direction"] == "up" else ask), True
-        if seg_id not in closed_segments:
-            pnl = paper.settle(pair, pos["direction"], pos["entry"], exit_px, pos["open_t"], pos["close_t"],
-                               opens=(seg == 1), closes=closes)
-            move = exit_px - pos["entry"]
-            append_jsonl(TRADES, {
-                "id": seg_id, "pair": pair, "model": pos["model"], "rule": pos.get("rule", "close-72h-v1"),
-                "direction": pos["direction"], "seg": seg,
-                "open_t": pos["open_t"], "open_at": at(pos["open_t"]),
-                "close_t": pos["close_t"], "close_at": at(pos["close_t"]),
-                "hours": int((pos["close_t"] - pos["open_t"]) / HOUR_MS),
-                "entry": pos["entry"], "exit": exit_px, "opens": seg == 1, "closes": closes,
-                "hit": (move > 0 and pos["direction"] == "up") or (move < 0 and pos["direction"] == "down"),
-                "quote_ok": quote_ok, "filled_t": this_hour, "settled_at": iso(n),
-                **pnl,
-            })
-            closed_segments.add(seg_id)
-            print(f"[{'持ち越し' if same else '手仕舞い'}] {seg_id} 手数料後 {pnl['net_pct']}%")
-        if same:
-            pos.update({
-                "entry": last, "seg": seg + 1,
-                "open_t": pos["close_t"], "open_at": at(pos["close_t"]),
-                "close_t": pos["close_t"] + HORIZON_MS, "close_at": at(pos["close_t"] + HORIZON_MS),
-                "carried_at": iso(n),
-            })
-            positions[pair] = pos
-        else:
-            positions.pop(pair, None)
-            pos = None
-        write_json(POSITIONS, positions)
+            if seg_id not in closed_segments:
+                pnl = paper.settle(pair, pos["direction"], pos["entry"], exit_px, pos["open_t"], pos["close_t"],
+                                   opens=(seg == 1), closes=closes)
+                move = exit_px - pos["entry"]
+                # 規則どおりの約定時刻は「期限の足が閉じた瞬間」＝ close_t の1時間後。そこから何分おくれて書いたか
+                due = pos["close_t"] + HOUR_MS
+                late_min = max(0, int((int(n.timestamp() * 1000) - due) / 60_000))
+                append_jsonl(TRADES, {
+                    "id": seg_id, "pair": pair, "model": pos["model"], "rule": pos.get("rule", "close-72h-v1"),
+                    "direction": pos["direction"], "seg": seg,
+                    "open_t": pos["open_t"], "open_at": at(pos["open_t"]),
+                    "close_t": pos["close_t"], "close_at": at(pos["close_t"]),
+                    "hours": int((pos["close_t"] - pos["open_t"]) / HOUR_MS),
+                    "entry": pos["entry"], "exit": exit_px, "opens": seg == 1, "closes": closes,
+                    "hit": (move > 0 and pos["direction"] == "up") or (move < 0 and pos["direction"] == "down"),
+                    # 規則の値と、実際に板にあった値。両方出す
+                    "entry_actual": pos.get("entry_actual"), "exit_actual": actual,
+                    "fill_source": fill_source, "late_minutes": late_min,
+                    "quote_ok": quote_ok, "filled_t": due, "settled_at": iso(n),
+                    **pnl,
+                })
+                closed_segments.add(seg_id)
+                print(f"[{'持ち越し' if same else '手仕舞い'}] {seg_id} 手数料後 {pnl['net_pct']}%")
+                if late_min > 60:
+                    gap = (actual - exit_px) / exit_px * 100
+                    print(f"::warning::{seg_id} を期限から {late_min}分おくれて書いた。"
+                          f"規則の値 {exit_px:,.0f} に対し、板は {actual:,.0f}（{gap:+.2f}%）だった")
+            if same:
+                pos.update({
+                    # 持ち越しの境目は、閉じた区間の手仕舞い値と同じ瞬間。同じ値を使う
+                    "entry": exit_px, "entry_actual": actual, "seg": seg + 1,
+                    "open_t": pos["close_t"], "open_at": at(pos["close_t"]),
+                    "close_t": pos["close_t"] + HORIZON_MS, "close_at": at(pos["close_t"] + HORIZON_MS),
+                    "carried_at": iso(n),
+                })
+                positions[pair] = pos
+            else:
+                positions.pop(pair, None)
+                pos = None
+            write_json(POSITIONS, positions)
 
     # --- 5. 建てる ---
     if pos is None and call and call["direction"] in paper.TRADE_DIRECTIONS:
-        entry = ask if call["direction"] == "up" else bid
+        # 規則の建て値は、合図にした足の終値。run した時刻に左右されない
+        entry = base["c"]
+        entry_actual = ask if call["direction"] == "up" else bid
+        # 足が閉じた瞬間から何分おくれて建てたか。合図は毎時5分なので、ふだんは数分に収まる
+        late_min = max(0, int((int(n.timestamp() * 1000) - (base["t"] + HOUR_MS)) / 60_000))
         pos = {
             "id": pid, "pair": pair, "model": call["model"], "rule": paper.RULE,
             "direction": call["direction"], "seg": 1,
             "open_t": base["t"], "open_at": at(base["t"]),
             "close_t": target_t, "close_at": at(target_t),
-            "entry": entry, "signal_price": base["c"], "opened_at": iso(n), "quote_ok": quote_ok,
+            "entry": entry, "entry_actual": entry_actual, "entry_late_minutes": late_min,
+            "signal_price": base["c"], "opened_at": iso(n), "quote_ok": quote_ok,
         }
         positions[pair] = pos
         write_json(POSITIONS, positions)
-        print(f"[建てる] {pair} {call['direction']} @{entry:,.0f}（足の終値 {base['c']:,.0f}）")
+        gap = (entry_actual - entry) / entry * 100
+        print(f"[建てる] {pair} {call['direction']} @{entry:,.0f}"
+              f"（板は {entry_actual:,.0f}／{gap:+.2f}%・{late_min}分後）")
+        if late_min > 60:
+            print(f"::warning::{pair} を足が閉じてから {late_min}分後に建てた。板との差 {gap:+.2f}%")
 
     # --- 表示用 ---
     shown = None

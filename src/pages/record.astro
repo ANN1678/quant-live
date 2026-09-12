@@ -12,6 +12,7 @@ const open = predictions.filter((p) => !results.some((r) => r.id === p.id))
 const oldJudged = results.filter((r) => !isCur(r)).sort((a, b) => b.target_t - a.target_t);
 const oldDone = trades.filter((t) => !isCurTrade(t)).sort((a, b) => b.close_t - a.close_t);
 const oldModels = [...new Set([...oldJudged.map((r) => r.model), ...oldDone.map((t) => `${t.model}／${t.rule ?? 'close-72h-v1'}`)])];
+const exec = summary?.execution ?? null;
 const sign = (n: number | null | undefined) => (n === null || n === undefined ? '' : n > 0 ? 'up' : n < 0 ? 'down' : '');
 // 7・14・28日の値動きの多数決。票の合計だけ見せても意味が伝わらないので、何本が上かに直す。
 const votes = (p: any) => {
@@ -102,6 +103,7 @@ const dataset = {
     <h2>終わった売買</h2>
     <p class="lead">72時間を1件として数えます。そのときもまだ上がると読んでいれば売らずに持ち続けるので、そういう回は売買していません。</p>
     <p class="fine">手数料がかかるのは、買った回と売った回だけです。</p>
+    <p class="fine">買った値と売った値は、その1時間の終値です。取引所に残る値なので、誰が計算しても同じ数字になります。</p>
     <div class="scroll">
       <table>
         <thead><tr><th>終わった時刻</th><th>銘柄</th><th>予測</th><th>何回目</th><th>買った値</th><th>72時間後の値</th><th>値動きだけ</th><th>引いた費用</th><th>残った損得</th></tr></thead>
@@ -123,13 +125,17 @@ const dataset = {
         </tbody>
       </table>
     </div>
+    {exec && (
+      <p class="fine">実行のずれ：{exec.n}件で、規則の値と、そのとき実際に板に並んでいた値の差は中央値{exec.gap_pct_median}%、最大{exec.gap_pct_max}%でした。記録が期限から遅れた時間は中央値{exec.late_minutes_median}分、最大{exec.late_minutes_max}分です。遅れるほど差が開きます。</p>
+    )}
   </section>
 
   {(oldJudged.length > 0 || oldDone.length > 0) && (
     <section class="section">
-      <span class="eyebrow"><span class="n">04</span> ／ 前のモデル　{oldModels.join('・')}</span>
-      <h2>前のモデルの記録</h2>
+      <span class="eyebrow"><span class="n">04</span> ／ 前のモデルと規則　{oldModels.join('・')}</span>
+      <h2>前のモデルと規則の記録</h2>
       <p class="lead">モデルや売買の規則を替える前の記録です。消さずに、ここへ分けて残す。上の集計には入れていない。</p>
+      <p class="fine">long-carry-v2 までの2件は、売る値を「動いた時点の板」で決めていました。2026年9月11日に実行が4時間半おくれ、その遅れがそのまま損得に乗っています。<a href="/method/">やり方</a>に経緯を書いています。</p>
       {oldJudged.length > 0 && (
         <div class="scroll">
           <table>
