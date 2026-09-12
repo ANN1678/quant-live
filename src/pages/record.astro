@@ -38,7 +38,7 @@ const dataset = {
   <div class="hero">
     <span class="eyebrow"><span class="n">RECORD</span> ／ 追記だけ</span>
     <h1>記録</h1>
-    <p class="lead">出した予測と、その結果を全部並べています。消したものはありません。書き換えたものもありません。順番は<a href="https://github.com/ANN1678/quant-live/tree/main/data">公開リポジトリの履歴</a>が持っています。</p>
+    <p class="lead">出した予測と、その結果を全部並べています。都合の悪い回も同じ場所にあります。消したものはない。書き換えたものもありません。順番は<a href="https://github.com/ANN1678/quant-live/tree/main/data">公開リポジトリの履歴</a>が持っています。</p>
   </div>
 
   <section class="section">
@@ -46,7 +46,7 @@ const dataset = {
     <h2>まだ答えが出ていない予測</h2>
     <div class="scroll">
       <table>
-        <thead><tr><th>出した時刻</th><th>銘柄</th><th>予測</th><th>モデル</th><th>自信／票</th><th>建てた値</th><th>判定する時刻</th></tr></thead>
+        <thead><tr><th>出した時刻</th><th>銘柄</th><th>予測</th><th>モデル</th><th>予測の根拠</th><th>建てた値</th><th>判定する時刻</th></tr></thead>
         <tbody>
           {open.length === 0 && <tr><td colspan="7" class="muted">ありません。</td></tr>}
           {open.slice(0, 40).map((p: any) => (
@@ -70,7 +70,7 @@ const dataset = {
     <h2>答えが出た予測</h2>
     <div class="scroll">
       <table>
-        <thead><tr><th>判定した時刻</th><th>銘柄</th><th>予測</th><th>建てた値</th><th>判定の値</th><th>動き</th><th>結果</th></tr></thead>
+        <thead><tr><th>判定した時刻</th><th>銘柄</th><th>予測</th><th>予測したときの値</th><th>72時間後の値</th><th>動き</th><th>結果</th></tr></thead>
         <tbody>
           {judged.length === 0 && <tr><td colspan="7" class="muted">まだありません。予測は72時間後に判定します。</td></tr>}
           {judged.slice(0, 200).map((r: any) => (
@@ -91,19 +91,19 @@ const dataset = {
 
   <section class="section">
     <span class="eyebrow"><span class="n">03</span> ／ 仮想の売買　{done.length}件</span>
-    <h2>閉じた区間</h2>
-    <p class="lead">72時間ごとに1件です。予測が同じ向きなら閉じずに持ち越すので、コストは建てた区間と閉じた区間にだけ載ります。</p>
+    <h2>終わった売買</h2>
+    <p class="lead">72時間を1件として数えます。そのときまだ「上」と出ていれば売らずに持ち越すので、そういう回は売買していません。手数料がかかるのは、買った回と売った回だけです。</p>
     <div class="scroll">
       <table>
-        <thead><tr><th>区間の終わり</th><th>銘柄</th><th>方向</th><th>区間</th><th>建てた値</th><th>区間の終値</th><th>コスト前</th><th>コスト</th><th>コスト後</th></tr></thead>
+        <thead><tr><th>終わった時刻</th><th>銘柄</th><th>予測</th><th>何回目</th><th>買った値</th><th>72時間後の値</th><th>値動きだけ</th><th>引いた費用</th><th>残った損得</th></tr></thead>
         <tbody>
-          {done.length === 0 && <tr><td colspan="9" class="muted">まだありません。1件目は建ててから72時間後に確定します。</td></tr>}
+          {done.length === 0 && <tr><td colspan="9" class="muted">まだありません。1件目は買ってから72時間後に確定します。</td></tr>}
           {done.slice(0, 200).map((t: any) => (
             <tr>
               <td>{jst(t.close_at)}</td>
               <td>{PAIR_LABEL[t.pair] ?? t.pair}</td>
               <td><span class={`tag ${t.direction}`}>{DIRECTION_LABEL[t.direction]}</span></td>
-              <td class="num">{t.seg ?? 1}{t.closes === false ? '（持ち越し）' : '（閉じた）'}</td>
+              <td class="num">{t.seg ?? 1}{t.closes === false ? '（持ち越した）' : '（売った）'}</td>
               <td class="num">{yen(t.entry)}</td>
               <td class="num">{yen(t.exit)}</td>
               <td class={`num ${sign(t.gross_pct)}`}>{pct(t.gross_pct)}</td>
@@ -120,11 +120,11 @@ const dataset = {
     <section class="section">
       <span class="eyebrow"><span class="n">04</span> ／ 前のモデル　{oldModels.join('・')}</span>
       <h2>前のモデルの記録</h2>
-      <p class="lead">モデルや売買の規則を替える前の記録です。消さずにここへ分けて残します。上の集計には入れていません。</p>
+      <p class="lead">モデルや売買の規則を替える前の記録です。消さずに、ここへ分けて残す。上の集計には入れていない。</p>
       {oldJudged.length > 0 && (
         <div class="scroll">
           <table>
-            <thead><tr><th>判定した時刻</th><th>銘柄</th><th>モデル</th><th>予測</th><th>建てた値</th><th>判定の値</th><th>動き</th><th>結果</th></tr></thead>
+            <thead><tr><th>判定した時刻</th><th>銘柄</th><th>モデル</th><th>予測</th><th>予測したときの値</th><th>72時間後の値</th><th>動き</th><th>結果</th></tr></thead>
             <tbody>
               {oldJudged.slice(0, 200).map((r: any) => (
                 <tr>
@@ -145,7 +145,7 @@ const dataset = {
       {oldDone.length > 0 && (
         <div class="scroll" style="margin-top:18px">
           <table>
-            <thead><tr><th>手仕舞った時刻</th><th>銘柄</th><th>モデル／規則</th><th>方向</th><th>建てた値</th><th>手仕舞った値</th><th>コスト前</th><th>コスト</th><th>コスト後</th></tr></thead>
+            <thead><tr><th>終わった時刻</th><th>銘柄</th><th>モデル／規則</th><th>予測</th><th>買った値</th><th>売った値</th><th>値動きだけ</th><th>引いた費用</th><th>残った損得</th></tr></thead>
             <tbody>
               {oldDone.slice(0, 200).map((t: any) => (
                 <tr>
@@ -164,7 +164,7 @@ const dataset = {
           </table>
         </div>
       )}
-      <p class="fine" style="margin-top:12px">前のモデルの玉を手仕舞うときは、いまの規則のコスト（銘柄ごとの手数料と、下なら建玉管理料）で計算します。</p>
+      <p class="fine" style="margin-top:12px">前のモデルで持っていたものを売るときは、いまの規則の費用で計算します。銘柄ごとの手数料と、「下」で売っていた場合はその保有にかかる費用です。</p>
     </section>
   )}
 </Base>
