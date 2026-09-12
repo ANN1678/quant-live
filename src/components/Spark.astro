@@ -2,7 +2,7 @@
 // 24時間の足を1本の線にする。目盛りの数字は出さない（読ませるのは形だけ）。
 // 線の下に横の破線を3本しいて、いまの値の先に点を置く。計器の画面に寄せている。
 interface Props { points: number[]; w?: number; h?: number; color?: string; }
-const { points, w = 260, h = 44, color = '#6b6a65' } = Astro.props;
+const { points, w = 260, h = 44, color = 'var(--muted)' } = Astro.props;
 const lo = Math.min(...points), hi = Math.max(...points);
 const span = hi - lo || 1;
 const xy = points.map((p, i) => [
@@ -24,7 +24,7 @@ const id = `sp${Math.random().toString(36).slice(2, 8)}`;
   {[0.25, 0.5, 0.75].map((r) => (
     <line
       x1="0" x2={w} y1={h * r} y2={h * r}
-      stroke="rgba(10,10,10,.13)" stroke-width="1" stroke-dasharray="1 5"
+      stroke="rgba(79,217,127,.22)" stroke-width="1" stroke-dasharray="1 5"
       vector-effect="non-scaling-stroke"
     />
   ))}

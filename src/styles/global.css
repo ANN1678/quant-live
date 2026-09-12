@@ -1,65 +1,52 @@
 /* ANN のデザインの正本。
  *
- * お手本＝block.xyz。2026-09-10に実測した値を土台にしている。
- *   地 #fbfbfa／字 純黒／見出しは 64px・ウェイト500・行送り1.1・字送りは詰めない
- *   本文16px／小札は大文字に .08em の字送り／数字は見出しと同じ書体・同じ500
- *   節は罫で区切らない。空きだけで区切る（100px）
+ * 2026-09-12に地を黒へ反転した（CEO指示・マトリックス風）。
+ * それまでの手本は block.xyz で、地は #fbfbfa の紙だった。
+ * **白い地では、どんな配色にしてもデジタルに見えなかった。**青と橙、青とマゼンタの2組を試して
+ * 2組とも外れている。効いていたのは色ではなく地の明暗のほうだった。
+ * 字づかいと余白は block.xyz の実測値のまま残してある。変えたのは地と色だけ。
+ *
+ *   見出しは 64px・ウェイト500・行送り1.1・字送りは詰めない
+ *   本文16px／小札は等幅の大文字に .12em の字送り／数字は見出しと同じ書体・同じ500
+ *   節は罫で区切らない。空きだけで区切る（--gap）
  *   数字の上にだけ、その桁の幅の細い罫を1本引く
- *   足は少し濃い地に、丸い枠の小さなリンクを並べる
  *
  * ⚠ 太さを900に戻さない。極太の見出しと箱の格子が、前の作りが野暮ったく見えた原因。
  * ⚠ 書体は2つだけ。Inter（英数）と Zen Kaku Gothic New（かな漢字）。
  *    等幅のかな漢字は Zen Kaku へ落とす（--mono の末尾）。等幅のWebフォントは読み込まない。
- *
- * ⚠ 上下に緑と赤は使わない。日本の板は上げが赤・米国は上げが緑で、逆に読まれる。
- *
- * 色は3つで、それぞれ仕事は1つだけ（2026-09-12にデジタル寄りへ入れ替えた）。
- *   --up    #0055ff  上・プラス。字にも面にも使える（紙で 5.4／この上に紙色の字で 5.4）
- *   --down  #d1006f  下・マイナス。**字と線に使う**（紙で 5.2）
- *   --live  シアン   いま動いていること。**字には使わない**（紙で 2.4 しか出ない）
- *
- * ⚠ **青とマゼンタは、赤が見えにくい人には分かれない。**
- *    2026-09-12にCEOの指示で橙から替えた。橙のときは色だけでも分かれていた。替えて失ったのはそこ。
- *    だから色を唯一の手がかりにしない。いまは次の3つで支えている。**外すと意味が読めなくなる。**
- *      1. 値には必ず符号をつける（pct() が + を足している）
- *      2. 札の中には「上」「下」の字を入れる
- *      3. 向きの3枠は、上を上へ・下を下へ寄せる。色が見えなくても位置で読める
- *
- * ⚠ マゼンタは2つある。紙の上では、明るいマゼンタを字に置けない（#ff2d92 は紙で 3.4 しか出ない）。
- *    だから字と線は濃いほう --down、塗りの面だけ明るいほう --down-lit にして、面の上には墨の字を置く。
- *    **この2つを入れ替えない。**入れ替えると、表の数字が読めなくなる。
- * ⚠ シアンを字に当てない。黒地の上と、地の色と、線にだけ当てる。
- *
- * ── 計器の層（2026-09-12に足した）────────────────────────────────
- * block.xyz の色と字はそのままに、機械が動いていることを見せる層を重ねた。
- *   1. 頭の黒帯　　稼働中の点滅・モデル名・規則名・最終更新・日本時間の秒
- *   2. 走査線　　　頭の下の1本を、青い光が6秒かけて左から右へ渡る
- *   3. 等幅の小札　札・表の見出し・時刻・式を等幅にする。数字は桁をそろえる
- *   4. 目盛り　　　数字の上の罫の左端に、6px の爪を下ろす
- *   5. 目盛りの棒　進み具合は塗りつぶさず、3px おきの粒に割る
- *
  * ⚠ 地に縦の罫を敷かない。2026-09-12に88pxの方眼を試して、CEOの指示で外した。
- * ⚠ 黒帯を厚くしない。28px。ここが厚いと、お手本の余白が効かなくなる。
+ *
+ * 色は3つで、それぞれ仕事は1つだけ。
+ *   --ink   燐光の緑  機械の声。見出し・本文・罫・数字。ページのほとんどはこれ
+ *   --up    全開の緑  上・プラス。地の文より明るいので、緑の中でも浮く
+ *   --down  琥珀      下・マイナス。緑と琥珀は、どちらもブラウン管の蛍光体の色
+ *
+ * ⚠ **上下は、緑と琥珀だけでは赤緑の色覚で分かれない。**だから色を唯一の手がかりにしない。
+ *    いまは次の3つで支えている。**外すと意味が読めなくなる。**
+ *      1. 値には必ず符号をつける（pct() が + を足している）
+ *      2. 札の中には UP／DOWN／FLAT の字を入れる
+ *      3. 向きの3枠は、上を上へ・下を下へ寄せる。色が見えなくても位置で読める
+ * ⚠ 黒地では、明るい色をそのまま字に置ける。白地のときの「明るい色は字にできない」制約は無い。
+ *    だから --down-lit は面を少し持ち上げるためだけに残してある。
  */
 
 :root {
-  --paper: #fbfbfa;
-  --surface: #ffffff;
-  --band: #f1f1ee;
-  --ink: #0a0a0a;
-  --muted: #6b6a65;
-  --faint: #8a8983;
-  --rule: rgba(10, 10, 10, .13);
-  --rule-soft: rgba(10, 10, 10, .07);
+  --paper: #020604;
+  --surface: #050b07;
+  --band: #09120b;
+  --ink: #4fd97f;
+  --muted: #37a15f;
+  --faint: #256f43;
+  --rule: rgba(79, 217, 127, .26);
+  --rule-soft: rgba(79, 217, 127, .12);
 
-  --up: #0055ff;
-  --down: #d1006f;
-  --down-lit: #ff2d92;
-  --flat: #6b6a65;
-  /* 動いていることの色。字には使わない */
-  --live: #00b4d8;
-  --live-lit: #2fe0ff;
-  --mark: rgba(0, 180, 216, .3);
+  --up: #00ff5a;
+  --down: #ffb454;
+  --down-lit: #ffc880;
+  --flat: #37a15f;
+  --live: #00ff5a;
+  --live-lit: #6bff9e;
+  --mark: rgba(0, 255, 90, .3);
 
   --sans: "Inter", "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
   /* ⚠ 末尾の Zen Kaku を外さない。等幅にかな漢字が来たとき、ここが無いと書体が3つになる */
@@ -72,7 +59,7 @@
   --frame: 40px;
   --measure: 760px;
   --gap: 104px;
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -97,22 +84,23 @@ body {
 a {
   color: inherit;
   text-decoration: underline;
-  text-decoration-color: rgba(10, 10, 10, .28);
+  text-decoration-color: rgba(79, 217, 127, .45);
   text-decoration-thickness: 1px;
   text-underline-offset: .24em;
   transition: text-decoration-color .15s;
 }
 a:hover { text-decoration-color: var(--ink); }
 
-::selection { background: rgba(0, 180, 216, .28); }
+::selection { background: rgba(0, 255, 90, .28); color: var(--paper); }
 :focus-visible { outline: 2px solid var(--up); outline-offset: 3px; }
 
 .wrap { max-width: var(--w); margin: 0 auto; padding: 0 var(--frame); }
 
 /* ── 黒帯。機械が動いていることを、いちばん上で1行だけ言う ───────────── */
 .statusbar {
-  background: var(--ink);
-  color: rgba(251, 251, 250, .58);
+  background: #000000;
+  color: rgba(79, 217, 127, .62);
+  border-bottom: 1px solid var(--rule-soft);
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: .06em;
@@ -124,19 +112,19 @@ a:hover { text-decoration-color: var(--ink); }
   display: flex; align-items: center; flex-wrap: wrap;
   gap: 6px 26px; height: 28px;
 }
-.statusbar b { font-weight: 400; color: rgba(251, 251, 250, .92); }
-.statusbar .live { color: rgba(251, 251, 250, .92); letter-spacing: .1em; }
+.statusbar b { font-weight: 400; color: var(--up); }
+.statusbar .live { color: var(--up); letter-spacing: .1em; }
 /* 点滅する点。動きを止めている相手には、点いたままで出す */
 .statusbar .live i {
   display: inline-block; width: 6px; height: 6px; margin-right: 9px;
   background: var(--live-lit); border-radius: 50%; vertical-align: .04em;
-  box-shadow: 0 0 0 0 rgba(47, 224, 255, .7);
+  box-shadow: 0 0 0 0 rgba(0, 255, 90, .7);
   animation: beat 2.4s ease-out infinite;
 }
 @keyframes beat {
-  0% { box-shadow: 0 0 0 0 rgba(47, 224, 255, .5); }
-  70% { box-shadow: 0 0 0 7px rgba(47, 224, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(47, 224, 255, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(0, 255, 90, .55); }
+  70% { box-shadow: 0 0 0 8px rgba(0, 255, 90, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 255, 90, 0); }
 }
 /* 秒まで出す時計は右端に置く。幅が足りないときは落とす */
 .statusbar .clock { margin-left: auto; }
@@ -382,7 +370,7 @@ strong { font-weight: 700; }
 /* ── 向きの3枠（7・14・28日） ────────────────────────────────────────── */
 /* 色だけで分けない。上は上へ、下は下へ寄せるので、位置でも読める */
 .votes { display: inline-flex; gap: 3px; vertical-align: -.24em; }
-.votes i { position: relative; display: block; width: 9px; height: 16px; background: var(--rule-soft); }
+.votes i { position: relative; display: block; width: 9px; height: 16px; background: rgba(79, 217, 127, .13); }
 .votes i::after { content: ''; position: absolute; left: 0; right: 0; height: 7px; }
 .votes i.up::after { top: 0; background: var(--up); }
 .votes i.down::after { bottom: 0; background: var(--down-lit); }
@@ -433,7 +421,7 @@ td.ts {
   font-variant-numeric: tabular-nums; font-feature-settings: var(--figs);
 }
 td.up { color: var(--up); } td.down { color: var(--down); }
-tbody tr:hover td { background: rgba(0, 180, 216, .07); }
+tbody tr:hover td { background: rgba(0, 255, 90, .06); }
 
 /* ── 札 ─────────────────────────────────────────────────────────────── */
 /* ⚠ 輪郭ではなく塗りにしている。紙の上では、字に置ける色の明るさに限りがある
@@ -446,8 +434,8 @@ tbody tr:hover td { background: rgba(0, 180, 216, .07); }
   border: 1px solid var(--rule); background: transparent;
   color: var(--muted); white-space: nowrap;
 }
-.tag.up { background: var(--up); border-color: var(--up); color: var(--paper); }
-.tag.down { background: var(--down-lit); border-color: var(--down-lit); color: var(--ink); }
+.tag.up { background: rgba(0, 255, 90, .14); border-color: var(--up); color: var(--up); }
+.tag.down { background: rgba(255, 180, 84, .14); border-color: var(--down); color: var(--down-lit); }
 .tag.none { color: var(--faint); }
 
 /* ── 次へ進む枠 ──────────────────────────────────────────────────────── */
@@ -472,7 +460,7 @@ tbody tr:hover td { background: rgba(0, 180, 216, .07); }
 }
 .field label .req {
   margin-left: 10px; padding: 1px 7px; border-radius: 2px;
-  background: var(--ink); color: var(--paper); letter-spacing: .06em; font-size: 10px;
+  background: var(--up); color: var(--paper); letter-spacing: .06em; font-size: 10px;
 }
 /* ⚠ 囲みの箱にしない。下に1本ひくだけ。数字の欄と同じ作りにそろえる */
 .field input, .field textarea {
@@ -500,10 +488,10 @@ button.cta { background: transparent; font-family: inherit; cursor: pointer; }
   max-width: var(--measure);
 }
 .warn { border-left-color: var(--down); }
-/* 式とコードは端末の画面にする。ここだけ地を反転させる */
+/* 式とコードは端末の画面にする。⚠ 黒地では沈めない。地より少し明るくして塊に見せる */
 .formula, .prose pre {
-  background: #0d0d0f;
-  color: #e9e9e4;
+  background: #0b160e;
+  color: var(--up);
   font-family: var(--mono);
   overflow-x: auto;
   max-width: var(--measure);
@@ -511,9 +499,9 @@ button.cta { background: transparent; font-family: inherit; cursor: pointer; }
 .formula {
   font-size: 14px; letter-spacing: .01em; line-height: 1.7;
   padding: 16px 18px;
-  border-left: 2px solid var(--live-lit);
+  border-left: 2px solid var(--up);
 }
-.prose pre { padding: 18px; font-size: 13.5px; line-height: 1.75; border-left: 2px solid var(--live-lit); }
+.prose pre { padding: 18px; font-size: 13.5px; line-height: 1.75; border-left: 2px solid var(--up); }
 .prose pre code { background: none; padding: 0; color: inherit; }
 .hl { background: linear-gradient(transparent 62%, var(--mark) 62%); }
 /* 図の中の発光。黒地の上でだけ使う */
