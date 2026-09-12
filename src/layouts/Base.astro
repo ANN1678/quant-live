@@ -28,7 +28,6 @@ const {
   jsonld = [],
   theme = 'dark',
 } = Astro.props;
-const light = theme === 'light';
 
 const SITE = 'https://ann1678.com';
 const path = Astro.url.pathname;
@@ -141,11 +140,7 @@ const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org,
       </div>
     </header>
 
-    {light && <div class="curve to-light" aria-hidden="true"></div>}
-
     <main><div class="wrap"><slot /></div></main>
-
-    {light && <div class="curve to-dark" aria-hidden="true"></div>}
 
     <footer class="site">
       <div class="wrap">
