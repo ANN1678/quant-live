@@ -18,7 +18,9 @@ ErrorDocument 404 /404.html
   RewriteRule ^seisei-ai-kenshu-hiyou/?$       https://corp.clubd.co.jp/case/seisei-ai-kenshu-hiyou/ [R=301,L]
 
   # --- 残りは同じ道に同じページがある ---
-  RewriteRule ^(service|works|company|contact|counseling|seminar|privacy|terms|commerce|ceomessage|research|case)(/.*)?$ https://corp.clubd.co.jp/$1$2 [R=301,L]
+  # ⚠ contact をこの並びから外した（2026-09-12）。ANNが自分の連絡フォームを /contact/ に置いたから。
+  #    ここに戻すと、ANNへ連絡しに来た人が、よその会社の問い合わせ先へ飛ばされる。
+  RewriteRule ^(service|works|company|counseling|seminar|privacy|terms|commerce|ceomessage|research|case)(/.*)?$ https://corp.clubd.co.jp/$1$2 [R=301,L]
 
   # --- WordPressの入口。もう無いので、探しに来たものを断つ ---
   RewriteRule ^(wp-admin|wp-login\.php|wp-content|wp-includes|xmlrpc\.php) - [R=410,L]

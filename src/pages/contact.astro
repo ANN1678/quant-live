@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+// ⚠ メールアドレスをページに書かない（2026-09-12 CEO指示）。
+//    宛先は public/contact.php の中だけに置く。PHPの中身は外から読めない。
+---
+<Base
+  title="連絡｜誤りの指摘と問い合わせ｜ANN"
+  description="計算の誤りや前提のごまかしを見つけたら、このページから送ってください。返信が要るときだけ、メールアドレスを書いてください。"
+  noindex={false}
+>
+  <div class="hero">
+    <span class="eyebrow"><span class="n">CONTACT</span> ／ 誤りの指摘もここへ</span>
+    <h1>連絡</h1>
+    <p class="lead">計算の誤りや、前提のごまかしを見つけたら教えてください。直した内容は履歴に残します。仕事の話も、ここから届きます。</p>
+  </div>
+
+  <section class="section">
+    <span class="eyebrow"><span class="n">01</span> ／ 送る</span>
+
+    {/* 送信のあとは /contact/?sent=1 へ戻ってくる。その1回だけ、下の札を出す */}
+    <div class="panel" id="sent" hidden>
+      <span class="eyebrow">送信しました</span>
+      <p class="lead">受け取りました。ありがとうございます。返信が要る内容なら、書いていただいた宛先へ返します。</p>
+    </div>
+
+    <form class="form" id="form" method="post" action="/contact.php">
+      <div class="field">
+        <label for="name">お名前</label>
+        <input type="text" id="name" name="name" maxlength="80" autocomplete="name" />
+        <p class="n">書かなくても送れます</p>
+      </div>
+
+      <div class="field">
+        <label for="email">返信先のメールアドレス</label>
+        <input type="email" id="email" name="email" maxlength="160" autocomplete="email" />
+        <p class="n">返信が要るときだけ書いてください。他には使いません</p>
+      </div>
+
+      <div class="field">
+        <label for="body">本文<span class="req">必須</span></label>
+        <textarea id="body" name="body" rows="9" maxlength="4000" required></textarea>
+        <p class="n">どのページの、どの数字かを書いていただけると早く直せます</p>
+      </div>
+
+      {/* 機械よけ。人には見えない欄で、埋まっていたら捨てる */}
+      <div class="trap" aria-hidden="true">
+        <label for="website">この欄は書かないでください</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <button class="cta" type="submit">送る<span class="arw" aria-hidden="true">→</span></button>
+      <p class="fine" style="margin-top:22px">送られた内容は、ANNの受信箱に届きます。返信のほかには使いません。人に渡すことも、広告に使うこともしません。</p>
+      <noscript><p class="fine">送信のあとは、白い画面に「送信しました」とだけ出ます。</p></noscript>
+    </form>
+  </section>
+
+  <section class="section">
+    <span class="eyebrow"><span class="n">02</span> ／ もう1つの道</span>
+    <h2>GitHubからでも届きます</h2>
+    <p class="lead">記録もコードも<a href="https://github.com/ANN1678/quant-live">公開のリポジトリ</a>に置いてあります。Issue を立てていただければ、そこでも受け取ります。やり取りがそのまま残るので、数字の話はこちらのほうが早いこともあります。</p>
+  </section>
+</Base>
+
+<script is:inline>
+  (function () {
+    if (location.search.indexOf('sent=1') === -1) return;
+    var s = document.getElementById('sent');
+    var f = document.getElementById('form');
+    if (s) s.hidden = false;
+    if (f) f.hidden = true;
+    if (s) s.scrollIntoView({ block: 'center' });
+  })();
+</script>

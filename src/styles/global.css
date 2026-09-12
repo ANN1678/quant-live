@@ -462,6 +462,37 @@ tbody tr:hover td { background: rgba(0, 180, 216, .07); }
 .cta .arw { font-size: 15px; line-height: 1; transition: transform .16s; }
 .cta:hover .arw { transform: translateX(3px); }
 
+/* ── 入力欄 ─────────────────────────────────────────────────────────── */
+.form { max-width: var(--measure); margin-top: 34px; }
+.field { margin-bottom: 30px; }
+.field label {
+  display: block; font-family: var(--mono);
+  font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 9px;
+}
+.field label .req {
+  margin-left: 10px; padding: 1px 7px; border-radius: 2px;
+  background: var(--ink); color: var(--paper); letter-spacing: .06em; font-size: 10px;
+}
+/* ⚠ 囲みの箱にしない。下に1本ひくだけ。数字の欄と同じ作りにそろえる */
+.field input, .field textarea {
+  display: block; width: 100%;
+  border: 0; border-bottom: 1px solid var(--rule);
+  background: transparent; color: var(--ink);
+  font-family: var(--sans); font-size: 16px; line-height: 1.8;
+  padding: 8px 0; border-radius: 0;
+  transition: border-color .16s;
+}
+.field textarea { resize: vertical; min-height: 8em; }
+.field input:hover, .field textarea:hover { border-bottom-color: var(--muted); }
+.field input:focus, .field textarea:focus {
+  outline: none; border-bottom-color: var(--up); border-bottom-width: 2px; padding-bottom: 7px;
+}
+.field .n { font-size: 13px; line-height: 1.75; color: var(--muted); margin: 9px 0 0; max-width: 30em; }
+/* 機械よけの欄。読み上げにも出さない */
+.trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+button.cta { background: transparent; font-family: inherit; cursor: pointer; }
+
 /* ── 注意書き ────────────────────────────────────────────────────────── */
 .note {
   border-left: 2px solid var(--ink); padding: 3px 0 3px 18px;
