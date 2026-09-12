@@ -1,8 +1,9 @@
 ---
-// 24時間の足を1本の線にする。目盛りの数字は出さない（読ませるのは形だけ）。
+// 1時間足の終値を1本の線にする。値の目盛りは出さない（読ませるのは形だけ）。
+// 両端の日時だけは出す。無いと、どこからどこまでの線か読み手に分からない。
 // 線の下に横の破線を3本しいて、いまの値の先に点を置く。計器の画面に寄せている。
-interface Props { points: number[]; w?: number; h?: number; color?: string; }
-const { points, w = 260, h = 44, color = 'var(--muted)' } = Astro.props;
+interface Props { points: number[]; w?: number; h?: number; color?: string; from?: string; to?: string; }
+const { points, w = 260, h = 44, color = 'var(--muted)', from, to } = Astro.props;
 const lo = Math.min(...points), hi = Math.max(...points);
 const span = hi - lo || 1;
 const xy = points.map((p, i) => [
@@ -36,3 +37,6 @@ const id = `sp${Math.random().toString(36).slice(2, 8)}`;
     stroke={color} stroke-width="1.4" vector-effect="non-scaling-stroke"
   />
 </svg>
+{from && to && (
+  <div class="spark-span"><span>{from}</span><span>{to}</span></div>
+)}

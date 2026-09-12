@@ -345,6 +345,7 @@ strong { font-weight: 700; }
 .stat .v a { text-decoration-thickness: 1px; text-underline-offset: .16em; }
 .stat .v .unit { font-size: .42em; letter-spacing: 0; color: var(--muted); margin-left: .28em; }
 .stat .n { font-size: 13px; line-height: 1.75; color: var(--muted); margin-top: 10px; max-width: 26em; }
+.spark-span { display: flex; justify-content: space-between; margin-top: 8px; font-family: var(--mono); font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .v.up { color: var(--up); } .v.down { color: var(--down); } .v.flat { color: var(--flat); }
 /* まだ数字が無い枠。大きく墨で出すと棒に見えるので、小さく灰にして引く。
    ⚠ 中身が「—」だけの行は、46pxの行箱のまま置くと字が下に落ちて宙に浮く。

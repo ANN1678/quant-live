@@ -24,6 +24,11 @@ const nextJudge = ((summary?.pending ?? []) as any[])
   .map((p) => ({ pair: p.pair, at: p.target_at, t: Date.parse(p.target_at) }))
   .filter((p) => Number.isFinite(p.t))
   .sort((a, b) => a.t - b.t)[0] ?? null;
+// 相場の線の両端の日時と、線の色。色は線の端から端で決める（上の「24時間で」とは期間が違う）。
+// 足の t は始まりの時刻で、終値はその1時間後の値なので、両端とも1時間足す
+const lineSpan = (cs: any[]) => cs.length === 0
+  ? { from: undefined, to: undefined, up: true }
+  : { from: jst(cs[0].t + 3600000), to: jst(cs[cs.length - 1].t + 3600000), up: cs[cs.length - 1].c >= cs[0].c };
 // 関門の目盛りは、成績がまだ無い銘柄も0件として出す
 const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k]) => [k, null]);
 ---
@@ -143,10 +148,12 @@ const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k])
         <div class="stat">
           <div class="kj">{PAIR_LABEL[key] ?? key}</div>
           <div class="v long">{yen(v.ticker.last)}<span class="unit">円</span></div>
-          <div class="n">24時間で {pct(((v.ticker.last - v.ticker.open) / v.ticker.open) * 100)}</div>
+          <div class="n">{jst(v.ticker.t)}までの24時間で {pct(((v.ticker.last - v.ticker.open) / v.ticker.open) * 100)}</div>
           <Spark
             points={v.candles.map((c: any) => c.c)}
-            color={v.ticker.last >= v.ticker.open ? 'var(--up)' : 'var(--down)'}
+            color={lineSpan(v.candles).up ? 'var(--up)' : 'var(--down)'}
+            from={lineSpan(v.candles).from}
+            to={lineSpan(v.candles).to}
           />
         </div>
       ))}
