@@ -61,6 +61,27 @@ def _trade_stats(trades: list[dict], with_ci: bool = True) -> dict:
     return st
 
 
+def _execution(trades: list[dict]) -> dict | None:
+    """実行のずれ。規則の値（足の終値）と、実際に板にあった値の差を数える。
+
+    規則の損益は run の時刻に左右されないが、**実際に取れたはずの値とは離れうる。**
+    離れた分は消さずにここで出す。合図が遅れるほど大きくなるので、遅刻の見張りも兼ねている。
+    """
+    rows = [t for t in trades if t.get("exit_actual") and t.get("fill_source") == "candle"]
+    if not rows:
+        return None
+    gaps = sorted(abs(t["exit_actual"] - t["exit"]) / t["exit"] * 100 for t in rows)
+    lates = sorted(t.get("late_minutes", 0) for t in rows)
+    mid = len(gaps) // 2
+    return {
+        "n": len(rows),
+        "gap_pct_median": round(gaps[mid] if len(gaps) % 2 else (gaps[mid - 1] + gaps[mid]) / 2, 4),
+        "gap_pct_max": round(gaps[-1], 4),
+        "late_minutes_median": lates[mid] if len(lates) % 2 else (lates[mid - 1] + lates[mid]) // 2,
+        "late_minutes_max": lates[-1],
+    }
+
+
 def _gate(trades: list[dict], verdicts: list[dict], n_now) -> dict:
     """銘柄ごとに検査する。決めた件数に達した回だけ gate.jsonl に追記する。"""
     per_pair = {}
@@ -122,6 +143,8 @@ def build(failed_pairs: list[str] | None = None) -> dict:
     remaining = {p: (v["next_checkpoint"] - v["trades"]) for p, v in per_pair_gate.items() if v["next_checkpoint"]}
     next_total = min(remaining.values()) if remaining else (CHECKPOINTS[0] if not per_pair_gate else None)
 
+    execution = _execution(cur_trades)
+
     legacy_models = sorted({p["model"] for p in preds} - {strategy.MODEL})
     legacy_keys = sorted({f"{t.get('model')}/{t.get('rule', 'close-72h-v1')}" for t in trades}
                          - {f"{strategy.MODEL}/{paper.RULE}"})
@@ -133,6 +156,7 @@ def build(failed_pairs: list[str] | None = None) -> dict:
         "horizon_hours": strategy.HORIZON_HOURS,
         "made": len(cur_preds),
         "made_all_models": len(preds),
+        "execution": execution,
         "open_positions": [v for v in (read_json(POSITIONS, {}) or {}).values() if v],
         "pending": [
             {k: p.get(k) for k in ("id", "pair", "direction", "confidence", "base_price",

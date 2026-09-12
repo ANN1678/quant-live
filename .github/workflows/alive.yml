@@ -1,0 +1,92 @@
+name: 本番が生きているか外から見る
+
+# ⚠ **エンジンと同じワークフローに置かない。**
+#    2026-09-11と09-12に、この検査が14分タイムアウトして engine の concurrency を塞いだ。
+#    検査が本業の順番待ちを作ってはいけないので、別のワークフローに分けてある。
+#
+# ⚠ **届かないことと、落ちていることは違う。**
+#    2026-09-11・09-12の失敗は「GitHubの機械から45秒×15回つながらなかった」だけで、
+#    サーバーが落ちていたのか、GitHub側の回線が壊れていたのか、ログから区別できなかった。
+#    だから先に対照（無関係な相手）を叩く。対照も落ちるなら、それは本番の話ではない。
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: alive
+  cancel-in-progress: true
+
+jobs:
+  alive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: どこから見ているか記録する
+        run: |
+          echo "送信元IP: $(curl -sS -m 10 https://api.ipify.org || echo '取れない')"
+          echo "DNS: $(getent hosts ann1678.com || echo '引けない')"
+
+      - name: 対照（GitHubの機械の回線が生きているか）
+        id: control
+        run: |
+          code=$(curl -sS -o /dev/null -m 20 -w '%{http_code}' https://www.google.com/generate_204 || echo 000)
+          echo "generate_204: ${code}"
+          if [ "${code}" = "204" ]; then
+            echo "ok=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=0" >> "$GITHUB_OUTPUT"
+            echo "::warning::GitHubの機械から外へ出られない。この回は本番の判定をしない"
+          fi
+
+      - name: 本番が生きているか外から見る
+        if: steps.control.outputs.ok == '1'
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -sS -o /tmp/live.html --connect-timeout 10 -m 30 \
+                        -A 'quant-live-uptime/1.0 (+https://ann1678.com/)' \
+                        -w '%{http_code} 名前引き=%{time_namelookup}s 接続=%{time_connect}s 応答=%{time_starttransfer}s' \
+                        https://ann1678.com/ || echo '000 届かない')
+            echo "試行 ${i}: ${code}"
+            case "${code}" in
+              200\ *)
+                if grep -q 'ann-render-ok' /tmp/live.html; then
+                  echo "生きている"; exit 0
+                fi
+                # 200を返しながら中身が違う。これは届いているので、すぐ鳴らす
+                echo "::error::ann1678.com は200を返すが ann-render-ok の印が無い。組み方か配信が壊れている"
+                exit 1
+                ;;
+            esac
+            sleep 15
+          done
+          echo "::error::ann1678.com に3回届かなかった。対照は通っているので、本番側の問題"
+          exit 1
+
+      - name: 記録が古くなっていないか
+        # サイトが生きていることと、記録が動いていることは別。
+        # 200を返しながら中身が止まっているのが、いちばん気づきにくい壊れ方。
+        #
+        # ⚠ 2段にしてある。GitHubの予定実行は27%しか来ないので（2026-09-12実測・80時間で22回）、
+        #    3時間で鳴らすと毎日鳴って意味を失う。Xserverからの合図を入れて毎時来るようになったら、
+        #    ERROR_H を 3 に下げる。
+        env:
+          WARN_H: '3'
+          ERROR_H: '6'
+        run: |
+          curl -sS -m 30 -o /tmp/summary.json \
+            https://raw.githubusercontent.com/${{ github.repository }}/main/data/summary.json
+          python3 - <<'PY'
+          import json, os, datetime as dt, sys
+          s = json.load(open("/tmp/summary.json"))
+          t = dt.datetime.fromisoformat(s["generated_at"])
+          age = (dt.datetime.now(t.tzinfo) - t).total_seconds() / 3600
+          warn, err = float(os.environ["WARN_H"]), float(os.environ["ERROR_H"])
+          print(f"最後の記録: {s['generated_at']}（{age:.1f}時間前）／ 予測 {s['made']}件")
+          if age > err:
+              print(f"::error::記録が{age:.1f}時間止まっている。エンジンが動いていない")
+              sys.exit(1)
+          if age > warn:
+              print(f"::warning::記録が{age:.1f}時間空いた。毎時来ていない")
+          PY
