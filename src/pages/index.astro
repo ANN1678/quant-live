@@ -16,8 +16,11 @@ const hasAvg = gate?.avg_net_pct !== null && gate?.avg_net_pct !== undefined;
 const perPair = Object.entries(gate?.per_pair ?? {}) as [string, any][];
 const sign = (n: number | null | undefined) => (n === null || n === undefined ? 'flat' : n > 0 ? 'up' : n < 0 ? 'down' : 'flat');
 const firstCheck = gate?.checkpoints?.[0] ?? 50;
-// まだ1件も終わっていないとき、いつ最初の1件が出るかを言うために使う
-const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
+// いまのモデルと規則で買った分か。前の規則の分は持ち越さずに売り、1回あたりの損益にも数えない（report.py が model と rule で分けている）
+const isCurrent = (p: any) => p.model === summary?.model && p.rule === summary?.rule;
+// まだ1件も終わっていないとき、いつ最初の1件が出るかを言うために使う。
+// ⚠ 前の規則の分を拾わない。拾うと、数えない売買の期限を「最初の1件」と書いてしまう（2026-09-13）
+const firstClose = open.filter(isCurrent).map((p: any) => p.close_at).sort()[0] ?? null;
 // 秒で動かす2つ。どちらもエンジンが書いた時刻から出す
 const lastRunT = summary?.generated_at ? Date.parse(summary.generated_at) : null;
 const nextJudge = ((summary?.pending ?? []) as any[])
@@ -97,7 +100,7 @@ const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k])
           {pct(gate.avg_net_pct, 3)}
         </p>
       ) : (
-        <p class="readout pending">まだ1件も終わっていません。{firstClose ? `${jst(firstClose)}に最初の1件が出ます。` : '最初の1件が終わったら、ここに出ます。'}</p>
+        <p class="readout pending">まだ1件も終わっていません。{firstClose ? `${jst(firstClose)}に最初の1件が出ます。` : 'いまの規則では、まだ1回も買っていません。上がると読んだ回に買って、その3日後に最初の1件が出ます。'}</p>
       )}
 
       <div class="gates">
@@ -132,7 +135,11 @@ const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k])
           <div class="stat">
             <div class="kj">{PAIR_LABEL[p.pair] ?? p.pair}　<span class={`tag ${p.direction}`}>{DIRECTION_LABEL[p.direction]}</span></div>
             <div class={`v ${sign(p.unrealized_pct)}`}>{pct(p.unrealized_pct, 2)}</div>
-            <div class="n">{yen(p.entry)}円で買ったことにしています。{jst(p.close_at)}に、売るか持ち続けるかを決めます{p.seg > 1 ? `（${p.seg}回目の持ち越し）` : ''}</div>
+            {isCurrent(p) ? (
+              <div class="n">{yen(p.entry)}円で買ったことにしています。{jst(p.close_at)}に、売るか持ち続けるかを決めます{p.seg > 1 ? `（${p.seg}回目の持ち越し）` : ''}</div>
+            ) : (
+              <div class="n">{yen(p.entry)}円で買ったことにしています。前の規則で買った分なので、{jst(p.close_at)}に売ります。1回あたりの損益には数えません。</div>
+            )}
           </div>
         ))}
       </div>

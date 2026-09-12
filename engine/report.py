@@ -161,7 +161,9 @@ def build(failed_pairs: list[str] | None = None) -> dict:
         "pending": [
             {k: p.get(k) for k in ("id", "pair", "direction", "confidence", "base_price",
                                    "target_at", "made_at", "model", "reason")}
-            for p in sorted(pending, key=lambda x: x["target_t"])[-8:]
+            # 期限の早い順に8件。TOPの「次の判定まで」がこの先頭を使う。
+            # ⚠ [-8:] にしない。期限の遅い8件になり、3日先の時刻が「次」に出た（2026-09-13）
+            for p in sorted(pending, key=lambda x: x["target_t"])[:8]
         ],
         "predictions": {
             "all": _pred_stats(cur_results),
