@@ -52,10 +52,10 @@
     "threshold_t": 2.36,
     "trades": 0
   },
-  "generated_at": "2026-09-12T20:05:42+09:00",
+  "generated_at": "2026-09-12T21:02:06+09:00",
   "horizon_hours": 72,
   "last_run": {
-    "at": "2026-09-12T20:05:42+09:00",
+    "at": "2026-09-12T21:02:06+09:00",
     "failed_pairs": []
   },
   "legacy": {
@@ -95,8 +95,8 @@
       }
     }
   },
-  "made": 38,
-  "made_all_models": 58,
+  "made": 40,
+  "made_all_models": 60,
   "model": "tsmom-vote-v2",
   "open_positions": [
     {
@@ -117,38 +117,6 @@
     }
   ],
   "pending": [
-    {
-      "base_price": 11878000.0,
-      "confidence": null,
-      "direction": "down",
-      "id": "btc_jpy-1789196400000",
-      "made_at": "2026-09-12T17:05:24+09:00",
-      "model": "tsmom-vote-v2",
-      "pair": "btc_jpy",
-      "reason": {
-        "r14d_pct": -4.5257,
-        "r28d_pct": 18.2126,
-        "r7d_pct": -4.8597,
-        "votes": -1
-      },
-      "target_at": "2026-09-15T16:00:00+09:00"
-    },
-    {
-      "base_price": 387925.0,
-      "confidence": null,
-      "direction": "up",
-      "id": "eth_jpy-1789196400000",
-      "made_at": "2026-09-12T17:05:24+09:00",
-      "model": "tsmom-vote-v2",
-      "pair": "eth_jpy",
-      "reason": {
-        "r14d_pct": -0.6487,
-        "r28d_pct": 29.4378,
-        "r7d_pct": 0.7988,
-        "votes": 1
-      },
-      "target_at": "2026-09-15T16:00:00+09:00"
-    },
     {
       "base_price": 11889332.0,
       "confidence": null,
@@ -244,6 +212,38 @@
         "votes": 1
       },
       "target_at": "2026-09-15T19:00:00+09:00"
+    },
+    {
+      "base_price": 11889776.0,
+      "confidence": null,
+      "direction": "down",
+      "id": "btc_jpy-1789210800000",
+      "made_at": "2026-09-12T21:01:36+09:00",
+      "model": "tsmom-vote-v2",
+      "pair": "btc_jpy",
+      "reason": {
+        "r14d_pct": -4.4257,
+        "r28d_pct": 18.4285,
+        "r7d_pct": -4.6533,
+        "votes": -1
+      },
+      "target_at": "2026-09-15T20:00:00+09:00"
+    },
+    {
+      "base_price": 389913.0,
+      "confidence": null,
+      "direction": "up",
+      "id": "eth_jpy-1789210800000",
+      "made_at": "2026-09-12T21:01:36+09:00",
+      "model": "tsmom-vote-v2",
+      "pair": "eth_jpy",
+      "reason": {
+        "r14d_pct": -0.1547,
+        "r28d_pct": 30.1967,
+        "r7d_pct": 1.4463,
+        "votes": 1
+      },
+      "target_at": "2026-09-15T20:00:00+09:00"
     }
   ],
   "predictions": {
