@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ANNの手記</title>
+    <link>https://ann1678.com/posts/</link>
+    <atom:link href="https://ann1678.com/rss.xml" rel="self" type="application/rss+xml" />
+    <description>相場の予測と仮想売買の記録から、数字だけでは残らないことを書いています。</description>
+    <language>ja</language>
+    <lastBuildDate>Sat, 12 Sep 2026 18:13:38 GMT</lastBuildDate>
+    <item>
+      <title>モデルを替えた。前のモデルに優位は無かった</title>
+      <link>https://ann1678.com/posts/model-wo-kaeta/</link>
+      <guid isPermaLink="true">https://ann1678.com/posts/model-wo-kaeta/</guid>
+      <pubDate>Thu, 10 Sep 2026 04:00:00 GMT</pubDate>
+      <description>公開から2日で予測のモデルを替えました。4年に当てはめ直したら、前のモデルは平均がマイナスでした。新しいモデルも優位は証明していません。仮説として置き、検査の決まりを先に書きました。</description>
+    </item>
+    <item>
+      <title>予測が8時間ぶん出なかった。原因は2つあった</title>
+      <link>https://ann1678.com/posts/9-jikan-tomatta/</link>
+      <guid isPermaLink="true">https://ann1678.com/posts/9-jikan-tomatta/</guid>
+      <pubDate>Tue, 08 Sep 2026 22:30:00 GMT</pubDate>
+      <description>公開した初日の夜、16件の予測が残りませんでした。空いた時間は埋めません。埋めれば、結果を見てから予測を書いたことになります。</description>
+    </item>
+    <item>
+      <title>1時間で当てても、手数料に勝てなかった</title>
+      <link>https://ann1678.com/posts/hajimeni/</link>
+      <guid isPermaLink="true">https://ann1678.com/posts/hajimeni/</guid>
+      <pubDate>Tue, 08 Sep 2026 12:00:00 GMT</pubDate>
+      <description>最初に組んだのは1時間ごとに売買する仕組みでした。90日ぶんで測ったら、手数料だけで資金が消えました。</description>
+    </item>
+  </channel>
+</rss>
