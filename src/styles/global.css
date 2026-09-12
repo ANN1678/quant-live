@@ -182,7 +182,8 @@ header.site .brand:hover { opacity: .6; }
 header.site nav { display: flex; gap: 30px; min-width: 0; }
 header.site nav a {
   color: var(--muted); text-decoration: none;
-  font-size: 13.5px; letter-spacing: .02em; white-space: nowrap;
+  font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
+  white-space: nowrap;
   padding: 4px 0; border-bottom: 1px solid transparent;
 }
 header.site nav a:hover { color: var(--ink); }
@@ -195,7 +196,7 @@ header.site nav a[aria-current="page"] { color: var(--ink); border-bottom-color:
   header.site { position: relative; }
   header.site .wrap { height: auto; padding-top: 14px; padding-bottom: 12px; flex-wrap: wrap; gap: 10px; }
   header.site .brand { flex: 0 0 100%; }
-  header.site nav { flex: 0 0 100%; flex-wrap: wrap; gap: 4px 20px; font-size: 13px; }
+  header.site nav { flex: 0 0 100%; flex-wrap: wrap; gap: 4px 18px; }
 }
 
 main { padding: 0 0 120px; }
@@ -531,7 +532,7 @@ footer.site {
 footer.site nav { display: flex; flex-wrap: wrap; gap: 12px; }
 footer.site nav a {
   display: inline-block; border: 1px solid var(--ink); border-radius: 999px;
-  padding: 8px 18px; font-size: 13px; letter-spacing: .02em;
+  padding: 8px 18px; font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
   color: var(--ink); text-decoration: none;
   transition: background .16s, color .16s;
 }
