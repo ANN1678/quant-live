@@ -52,10 +52,10 @@
     "threshold_t": 2.36,
     "trades": 0
   },
-  "generated_at": "2026-09-13T03:05:44+09:00",
+  "generated_at": "2026-09-13T03:13:20+09:00",
   "horizon_hours": 72,
   "last_run": {
-    "at": "2026-09-13T03:05:44+09:00",
+    "at": "2026-09-13T03:13:20+09:00",
     "failed_pairs": []
   },
   "legacy": {
