@@ -1,5 +1,6 @@
 ---
-// 24時間の足を1本の線にする。目盛りは出さない（読ませるのは形だけ）。
+// 24時間の足を1本の線にする。目盛りの数字は出さない（読ませるのは形だけ）。
+// 線の下に横の破線を3本しいて、いまの値の先に点を置く。計器の画面に寄せている。
 interface Props { points: number[]; w?: number; h?: number; color?: string; }
 const { points, w = 260, h = 44, color = '#6b6a65' } = Astro.props;
 const lo = Math.min(...points), hi = Math.max(...points);
@@ -10,15 +11,28 @@ const xy = points.map((p, i) => [
 ] as [number, number]);
 const line = xy.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
 const area = `${line} L${w} ${h} L0 ${h} Z`;
+const end = xy[xy.length - 1] ?? [w, h / 2];
 const id = `sp${Math.random().toString(36).slice(2, 8)}`;
 ---
-<svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} preserveAspectRatio="none" aria-hidden="true" style="display:block;margin-top:14px">
+<svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} preserveAspectRatio="none" aria-hidden="true" style="display:block;margin-top:14px;overflow:visible">
   <defs>
     <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color={color} stop-opacity="0.13" />
       <stop offset="100%" stop-color={color} stop-opacity="0" />
     </linearGradient>
   </defs>
+  {[0.25, 0.5, 0.75].map((r) => (
+    <line
+      x1="0" x2={w} y1={h * r} y2={h * r}
+      stroke="rgba(10,10,10,.13)" stroke-width="1" stroke-dasharray="1 5"
+      vector-effect="non-scaling-stroke"
+    />
+  ))}
   <path d={area} fill={`url(#${id})`} />
   <path d={line} fill="none" stroke={color} stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+  {/* いまの値。横に伸び縮みする図なので、丸ではなく縦の短い線で置く（つぶれない） */}
+  <line
+    x1={end[0]} x2={end[0]} y1={end[1] - 4} y2={end[1] + 4}
+    stroke={color} stroke-width="1.4" vector-effect="non-scaling-stroke"
+  />
 </svg>

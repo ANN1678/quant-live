@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Votes from '../components/Votes.astro';
 import { results, trades, predictions, summary, DIRECTION_LABEL, PAIR_LABEL, jst, pct, yen } from '../lib/data';
 const curModel = summary?.model;
 const curRule = summary?.rule;
@@ -14,14 +15,6 @@ const oldDone = trades.filter((t) => !isCurTrade(t)).sort((a, b) => b.close_t - 
 const oldModels = [...new Set([...oldJudged.map((r) => r.model), ...oldDone.map((t) => `${t.model}／${t.rule ?? 'close-72h-v1'}`)])];
 const exec = summary?.execution ?? null;
 const sign = (n: number | null | undefined) => (n === null || n === undefined ? '' : n > 0 ? 'up' : n < 0 ? 'down' : '');
-// 7・14・28日の値動きの多数決。票の合計だけ見せても意味が伝わらないので、何本が上かに直す。
-const votes = (p: any) => {
-  const r = p.reason ?? {};
-  const n = Object.keys(r).filter((k) => k.endsWith('_pct')).length;
-  if (!n || r.votes === undefined) return '—';
-  return `${n}本のうち${(n + r.votes) / 2}本が上`;
-};
-
 // 記録そのものを構造化データにしておく。これが商品なので、検索側にも「何の記録か」を渡す。
 const dataset = {
   '@type': 'Dataset',
@@ -60,13 +53,13 @@ const dataset = {
           {open.length === 0 && <tr><td colspan="7" class="muted">ありません。</td></tr>}
           {open.slice(0, 40).map((p: any) => (
             <tr>
-              <td>{jst(p.made_at)}</td>
+              <td class="ts">{jst(p.made_at)}</td>
               <td>{PAIR_LABEL[p.pair] ?? p.pair}</td>
               <td><span class={`tag ${p.direction}`}>{DIRECTION_LABEL[p.direction]}</span></td>
               <td class="mono">{p.model}</td>
-              <td class="num">{votes(p)}</td>
+              <td class="num"><Votes reason={p.reason} /></td>
               <td class="num">{yen(p.base_price)}</td>
-              <td>{jst(p.target_at)}</td>
+              <td class="ts">{jst(p.target_at)}</td>
             </tr>
           ))}
         </tbody>
@@ -84,7 +77,7 @@ const dataset = {
           {judged.length === 0 && <tr><td colspan="7" class="muted">まだありません。予測は72時間後に判定します。</td></tr>}
           {judged.slice(0, 200).map((r: any) => (
             <tr>
-              <td>{jst(r.target_at)}</td>
+              <td class="ts">{jst(r.target_at)}</td>
               <td>{PAIR_LABEL[r.pair] ?? r.pair}</td>
               <td><span class={`tag ${r.direction}`}>{DIRECTION_LABEL[r.direction]}</span></td>
               <td class="num">{yen(r.base_price)}</td>
@@ -111,7 +104,7 @@ const dataset = {
           {done.length === 0 && <tr><td colspan="9" class="muted">まだありません。1件目は買ってから72時間後に確定します。</td></tr>}
           {done.slice(0, 200).map((t: any) => (
             <tr>
-              <td>{jst(t.close_at)}</td>
+              <td class="ts">{jst(t.close_at)}</td>
               <td>{PAIR_LABEL[t.pair] ?? t.pair}</td>
               <td><span class={`tag ${t.direction}`}>{DIRECTION_LABEL[t.direction]}</span></td>
               <td class="num">{t.seg ?? 1}{t.closes === false ? '（持ち越した）' : '（売った）'}</td>
@@ -143,7 +136,7 @@ const dataset = {
             <tbody>
               {oldJudged.slice(0, 200).map((r: any) => (
                 <tr>
-                  <td>{jst(r.target_at)}</td>
+                  <td class="ts">{jst(r.target_at)}</td>
                   <td>{PAIR_LABEL[r.pair] ?? r.pair}</td>
                   <td class="mono">{r.model}</td>
                   <td><span class={`tag ${r.direction}`}>{DIRECTION_LABEL[r.direction]}</span></td>
@@ -164,7 +157,7 @@ const dataset = {
             <tbody>
               {oldDone.slice(0, 200).map((t: any) => (
                 <tr>
-                  <td>{jst(t.close_at)}</td>
+                  <td class="ts">{jst(t.close_at)}</td>
                   <td>{PAIR_LABEL[t.pair] ?? t.pair}</td>
                   <td class="mono">{t.model}／{t.rule ?? 'close-72h-v1'}</td>
                   <td><span class={`tag ${t.direction}`}>{DIRECTION_LABEL[t.direction]}</span></td>

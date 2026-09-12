@@ -1,0 +1,23 @@
+---
+// 7・14・28日の値動きの向きを、3つの枠で出す。
+// 上は青を上へ、下は橙を下へ寄せる。色だけで分けない（色が見分けられなくても位置で分かる）。
+// ⚠ 並びは左から7日・14日・28日。表の見出しがその順番を言っているので、入れ替えない。
+interface Props { reason: any; }
+const { reason } = Astro.props;
+
+const spans = [[7, 'r7d_pct'], [14, 'r14d_pct'], [28, 'r28d_pct']] as const;
+const cells = spans
+  .filter(([, k]) => typeof reason?.[k] === 'number')
+  .map(([d, k]) => ({ d, v: reason[k] as number }));
+const word = (v: number) => (v > 0 ? '上' : v < 0 ? '下' : '横ばい');
+const label = cells.map((c) => `${c.d}日は${word(c.v)}`).join('、');
+---
+{cells.length === 0 ? (
+  <span class="muted">—</span>
+) : (
+  <span class="votes" role="img" aria-label={label}>
+    {cells.map((c) => (
+      <i class={c.v > 0 ? 'up' : c.v < 0 ? 'down' : 'flat'} title={`${c.d}日 ${c.v > 0 ? '+' : ''}${c.v.toFixed(2)}%`}></i>
+    ))}
+  </span>
+)}

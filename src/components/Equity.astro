@@ -1,0 +1,36 @@
+---
+// 仮想の資金の推移。売買が閉じたときだけ点が増えるので、線が寝ている時間のほうが長い。
+// ⚠ 点が少ないうちは出さない（index 側で数を見ている）。2点の線は、形を読み違えさせる。
+interface Props { curve: { t: number; capital: number }[]; start: number; h?: number; }
+const { curve, start, h = 150 } = Astro.props;
+const w = 1000;
+const vals = [...curve.map((p) => p.capital), start];
+const lo = Math.min(...vals), hi = Math.max(...vals);
+const span = hi - lo || 1;
+const pad = span * 0.12;
+const y = (v: number) => h - ((v - (lo - pad)) / (span + pad * 2)) * h;
+const xy = curve.map((p, i) => [(i / (curve.length - 1 || 1)) * w, y(p.capital)] as [number, number]);
+const line = xy.map(([x, yy], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${yy.toFixed(1)}`).join(' ');
+const area = `${line} L${w} ${h} L0 ${h} Z`;
+const last = curve[curve.length - 1]?.capital ?? start;
+const color = last >= start ? 'var(--up)' : 'var(--down)';
+const id = `eq${Math.random().toString(36).slice(2, 8)}`;
+---
+<svg class="equity" viewBox={`0 0 ${w} ${h}`} width="100%" height={h} preserveAspectRatio="none"
+     role="img" aria-label={`仮想の資金は ${start.toLocaleString('ja-JP')}円から ${Math.round(last).toLocaleString('ja-JP')}円へ動きました`}>
+  <defs>
+    <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color={color} stop-opacity="0.14" />
+      <stop offset="100%" stop-color={color} stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  {/* 元手の線。ここより上なら増えている */}
+  <line x1="0" x2={w} y1={y(start)} y2={y(start)} stroke="rgba(10,10,10,.28)" stroke-width="1"
+        stroke-dasharray="2 4" vector-effect="non-scaling-stroke" />
+  <path d={area} fill={`url(#${id})`} />
+  <path d={line} fill="none" stroke={color} stroke-width="1.6" stroke-linejoin="round"
+        stroke-linecap="round" vector-effect="non-scaling-stroke" />
+  <line x1={xy[xy.length - 1]?.[0] ?? w} x2={xy[xy.length - 1]?.[0] ?? w}
+        y1={(xy[xy.length - 1]?.[1] ?? h / 2) - 5} y2={(xy[xy.length - 1]?.[1] ?? h / 2) + 5}
+        stroke={color} stroke-width="1.6" vector-effect="non-scaling-stroke" />
+</svg>

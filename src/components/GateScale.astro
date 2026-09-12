@@ -1,0 +1,41 @@
+---
+// 関門の目盛り。0件から400件までの1本の線に、検査する4点を打つ。
+// いま何件で、次にどこで検査するかを、数字を読まずに見て取れるようにする。
+// ⚠ 目盛りは400件で終わり。400件で合格しなければ、このモデルは終わる決まりだから。
+interface Props {
+  label: string;
+  trades: number;
+  checkpoints: number[];
+  next?: number | null;
+  t?: number | null;
+  threshold: number;
+  verdicts?: any[];
+}
+const { label, trades, checkpoints, next = null, t = null, threshold, verdicts = [] } = Astro.props;
+const max = checkpoints[checkpoints.length - 1] ?? 400;
+const at = (n: number) => `${Math.min(100, (n / max) * 100)}%`;
+const done = checkpoints.filter((c) => c <= trades).length;
+---
+<div class="gate">
+  <div class="gate-top">
+    <span class="kj">{label}</span>
+    <span class="gate-n"><b class="num">{trades}</b><span class="unit"> ／ {max} 件</span></span>
+  </div>
+
+  <div class="gate-rail" role="img" aria-label={`${label}は${trades}件。検査は${checkpoints.join('・')}件のときで、${done}回済んでいます`}>
+    <span class="track"><i style={`width:${at(trades)}`}></i></span>
+    {checkpoints.map((c) => (
+      <span class={`cp${c <= trades ? ' past' : ''}${c === next ? ' next' : ''}`} style={`left:${at(c)}`}>
+        <em class="num">{c}</em>
+      </span>
+    ))}
+  </div>
+
+  <p class="n">
+    {next ? `次の検査は ${next} 件です。` : done > 0 ? '検査は4回とも終わりました。' : ''}
+    {t === null || t === undefined ? 'まだ t は出せません' : `いまの t は ${t}（合格は ${threshold} から）`}
+  </p>
+  {verdicts.length > 0 && (
+    <p class="n">{verdicts.map((d: any) => `${d.n}件で t ${d.t} ${d.passed ? '合格' : '不合格'}`).join('　')}</p>
+  )}
+</div>

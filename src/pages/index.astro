@@ -1,7 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
 import Spark from '../components/Spark.astro';
-import { summary, market, backtest, results, DIRECTION_LABEL, PAIR_LABEL, jst, pct, yen } from '../lib/data';
+import GateScale from '../components/GateScale.astro';
+import Equity from '../components/Equity.astro';
+import { summary, market, backtest, equity, results, DIRECTION_LABEL, PAIR_LABEL, jst, pct, yen } from '../lib/data';
 
 const gate = summary?.gate ?? null;
 const pred = summary?.predictions?.all ?? null;
@@ -16,15 +18,40 @@ const sign = (n: number | null | undefined) => (n === null || n === undefined ? 
 const firstCheck = gate?.checkpoints?.[0] ?? 50;
 // まだ1件も終わっていないとき、いつ最初の1件が出るかを言うために使う
 const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
+// 秒で動かす2つ。どちらもエンジンが書いた時刻から出す
+const lastRunT = summary?.generated_at ? Date.parse(summary.generated_at) : null;
+const nextJudge = ((summary?.pending ?? []) as any[])
+  .map((p) => ({ pair: p.pair, at: p.target_at, t: Date.parse(p.target_at) }))
+  .filter((p) => Number.isFinite(p.t))
+  .sort((a, b) => a.t - b.t)[0] ?? null;
+// 関門の目盛りは、成績がまだ無い銘柄も0件として出す
+const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k]) => [k, null]);
 ---
 <Base
   title="ANN｜ビットコインの予測と仮想売買の記録を全部公開"
-  description="ビットコインとイーサリアムが72時間後に上がるか下がるかを1時間ごとに予測し、そのとおりに売買したことにして損得を数えています。当たった回も外した回も全件そのまま公開。実際のお金を出す条件も数字で書いています。"
+  description="ビットコインとイーサリアムが72時間後に上がるか下がるかを1時間ごとに予測し、そのとおりに売買したことにして損得を数えています。当たった回も外した回も全件そのまま公開。リアルに移行する条件も数字で書いています。"
 >
   <div class="hero">
     <span class="eyebrow"><span class="n">LIVE</span> ／ 1時間ごとに書き換えています</span>
     <h1>相場を予測して、<br />仮想で売買しています。</h1>
     <p class="lead">ビットコインとイーサリアムが3日後に上がるか下がるかを、1時間ごとに予測します。その予測どおりに売買したことにして、手数料を引いた損得を数えます。当たった回も外した回も、消さずにそのまま出します。</p>
+
+    <div class="stats c2 ticks">
+      {lastRunT && (
+        <div class="stat">
+          <div class="kj">最終更新から</div>
+          <div class="v tv" data-from={lastRunT}>--:--:--</div>
+          <div class="n">エンジンは1時間ごとに回ります。回るたびに、このページを組み直します</div>
+        </div>
+      )}
+      {nextJudge && (
+        <div class="stat">
+          <div class="kj">次の判定まで</div>
+          <div class="v tv" data-until={nextJudge.t}>--:--:--</div>
+          <div class="n">{jst(nextJudge.at)}に、{PAIR_LABEL[nextJudge.pair] ?? nextJudge.pair}の予測を答え合わせします</div>
+        </div>
+      )}
+    </div>
   </div>
 
   <section class="section">
@@ -55,8 +82,8 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
 
   <section class="section">
     <span class="eyebrow"><span class="n">02</span> ／ 決め方</span>
-    <h2>実際のお金を出す条件</h2>
-    <p class="lead">いまは1円も動かしていない。売買を400回まで数えて、1回あたりの損得がまぐれでは説明できないほどプラスなら、そこで初めて実際のお金を出します。<strong>的中率では決めない。</strong>外すほうが多くても、勝った回の値幅が大きければ資金は増えるからです。</p>
+    <h2>いつリアルに移行するか</h2>
+    <p class="lead">いまは1円も動かしていない。売買を400回まで数えて、1回あたりの損得がまぐれでは説明できないほどプラスなら、そこで初めて現金を出します。<strong>的中率では決めない。</strong>外すほうが多くても、勝った回の値幅が大きければ資金は増えるからです。</p>
 
     <div class="panel" style="margin-top:38px">
       <span class="eyebrow">1回あたりの平均損益（手数料などを引いた後）</span>
@@ -68,34 +95,20 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
         <p class="readout pending">まだ1件も終わっていません。{firstClose ? `${jst(firstClose)}に最初の1件が出ます。` : '最初の1件が終わったら、ここに出ます。'}</p>
       )}
 
-      <div class="stats c2" style="margin-top:48px">
-        {perPair.length === 0 ? (
-          <>
-            <div class="stat">
-              <div class="kj">終わった売買</div>
-              <div class="v">0<span class="unit">件</span></div>
-              <div class="n">同時に持つのは1銘柄につき1つだけです。72時間ごとに見直します</div>
-            </div>
-            <div class="stat">
-              <div class="kj">次の検査</div>
-              <div class="v">{firstCheck}<span class="unit">件</span></div>
-              <div class="n">ビットコインで{firstCheck}件、イーサリアムで{firstCheck}件たまったら検査します</div>
-            </div>
-          </>
-        ) : perPair.map(([pair, v]: [string, any]) => (
-          <div class="stat">
-            <div class="kj">{PAIR_LABEL[pair] ?? pair}</div>
-            <div class="v">{v.trades}<span class="unit">件{v.next_checkpoint ? `。次の検査は ${v.next_checkpoint} 件` : ''}</span></div>
-            <div class="progress" role="img" aria-label={`${PAIR_LABEL[pair] ?? pair} ${v.trades} 件。次の検査は ${v.next_checkpoint ?? '無し'} 件`}>
-              <i style={`width:${v.next_checkpoint ? Math.min(100, (v.trades / v.next_checkpoint) * 100) : 100}%`}></i>
-            </div>
-            <div class="n">いまの t {v.t ?? '—'}（参考。合格は {gate?.threshold_t ?? 2.36} から）{v.passed ? '・合格' : v.finished ? '・4回とも不合格' : ''}</div>
-            {v.verdicts?.length > 0 && (
-              <div class="n">{v.verdicts.map((d: any) => `${d.n}件で検査 t ${d.t} ${d.passed ? '合格' : '不合格'}（${jst(d.at)}）`).join('　')}</div>
-            )}
-          </div>
+      <div class="gates">
+        {gateRows.map(([pair, v]) => (
+          <GateScale
+            label={PAIR_LABEL[pair] ?? pair}
+            trades={v?.trades ?? 0}
+            checkpoints={gate?.checkpoints ?? [50, 100, 200, 400]}
+            next={v?.next_checkpoint ?? firstCheck}
+            t={v?.t ?? null}
+            threshold={gate?.threshold_t ?? 2.36}
+            verdicts={v?.verdicts ?? []}
+          />
         ))}
       </div>
+      <p class="fine" style="margin:30px 0 0">同時に持つのは1銘柄につき1つだけです。72時間ごとに見直します。件数は銘柄ごとに数えます。</p>
 
       <p class="fine" style="margin:34px 0 0">まぐれかどうかは <span class="mono">t</span> という数で見ます。勝った幅が大きいほど、ばらつきが小さいほど、件数が多いほど t は大きくなります。平均がプラスでも、件数が少なければ t は小さいままです。<strong>t が {gate?.threshold_t ?? 2.36} 以上で合格にします。</strong></p>
       <p class="fine" style="margin:14px 0 0">逆もあります。この予測が本当に効いていても、400件のうちに気づけるのは4割ほどです。不合格でも、効いていないと決まったわけではない。数え方は<a href="/method/">やり方</a>に全部書きました。</p>
@@ -133,7 +146,7 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
           <div class="n">24時間で {pct(((v.ticker.last - v.ticker.open) / v.ticker.open) * 100)}</div>
           <Spark
             points={v.candles.map((c: any) => c.c)}
-            color={v.ticker.last >= v.ticker.open ? '#004bff' : '#c44603'}
+            color={v.ticker.last >= v.ticker.open ? 'var(--up)' : 'var(--down)'}
           />
         </div>
       ))}
@@ -166,6 +179,14 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
         <div class="n">{yen(summary?.capital?.start)}円から {pct(summary?.capital?.change_pct)}</div>
       </div>
     </div>
+    {equity?.curve?.length >= 5 && (
+      <div class="panel" style="margin-top:52px">
+        <span class="eyebrow">仮想の資金の推移</span>
+        <Equity curve={equity.curve} start={equity.start} />
+        <p class="fine" style="margin-top:16px">点が増えるのは、売買が閉じたときだけです。破線は元手の {yen(equity?.start)}円を指しています。</p>
+      </div>
+    )}
+
     <p class="fine" style="margin-top:30px">的中率が2つあるのは、予測どうしが時間で重なっているからです。1時間ごとに出しますが、どれも72時間先を見ています。<strong>隣り合う予測は、71時間ぶん同じ値動きを見ている。</strong>だから何百件当てても、別々の出来事をその回数だけ当てたことにはなりません。重なりを消すには、72件おきに1件だけ取ります。それが2つ目の数字です。</p>
   </section>
 
@@ -181,7 +202,7 @@ const firstClose = open.map((p: any) => p.close_at).sort()[0] ?? null;
           <tbody>
             {recent.map((r: any) => (
               <tr>
-                <td>{jst(r.target_at)}</td>
+                <td class="ts">{jst(r.target_at)}</td>
                 <td>{PAIR_LABEL[r.pair] ?? r.pair}</td>
                 <td><span class={`tag ${r.direction}`}>{DIRECTION_LABEL[r.direction]}</span></td>
                 <td class="num">{yen(r.base_price)}</td>

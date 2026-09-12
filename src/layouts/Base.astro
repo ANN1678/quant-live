@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import AnnMark from '../components/AnnMark.astro';
+import { summary, jst } from '../lib/data';
 
 interface Props {
   title: string;
@@ -15,7 +16,7 @@ interface Props {
 
 const {
   title,
-  description = '相場を予測し、仮想で売買した結果を、当たった回も外した回もそのまま公開しています。実際のお金を出す条件も数字で書いています。',
+  description = '相場を予測し、仮想で売買した結果を、当たった回も外した回もそのまま公開しています。リアルに移行する条件も数字で書いています。',
   noindex = false,
   ogType = 'website',
   jsonld = [],
@@ -89,7 +90,8 @@ const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org,
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
-    <meta name="theme-color" content="#ffffff" />
+    {/* いちばん上が黒帯なので、端末の枠も黒に合わせる */}
+    <meta name="theme-color" content="#0a0a0a" />
     <link rel="alternate" type="application/rss+xml" title="ANNの手記" href={`${SITE}/rss.xml`} />
     <link rel="sitemap" type="application/xml" href={`${SITE}/sitemap.xml`} />
 
@@ -103,6 +105,17 @@ const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org,
     <script type="application/ld+json" set:html={graph} is:inline />
   </head>
   <body>
+    {/* 動いていることを、いちばん上で1行だけ言う。値はエンジンが書いた summary.json から取る */}
+    <div class="statusbar">
+      <div class="wrap">
+        <span class="live"><i aria-hidden="true"></i>稼働中</span>
+        <span class="model">モデル <b>{summary?.model ?? '—'}</b></span>
+        <span class="rule">規則 <b>{summary?.rule ?? '—'}</b></span>
+        <span class="sync">最終更新 <b>{jst(summary?.generated_at)}</b></span>
+        <span class="clock">日本時間 <b id="clock">--:--:--</b></span>
+      </div>
+    </div>
+
     <header class="site">
       <div class="wrap">
         <a class="brand" href="/">
@@ -130,5 +143,41 @@ const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org,
         <!-- ann-render-ok -->
       </div>
     </footer>
+
+    {/* 秒で動くものを、ここで全部まとめて回す。
+        黒帯の時計と、data-from（そこから何が経ったか）と data-until（そこまであと何か）。
+        ⚠ setInterval は1本だけにする。要素ごとに立てない。 */}
+    <script is:inline>
+      (function () {
+        var clock = document.getElementById('clock');
+        var timers = document.querySelectorAll('[data-from],[data-until]');
+        if (!clock && !timers.length) return;
+
+        var f = new Intl.DateTimeFormat('ja-JP', {
+          timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+        });
+        function pad(n) { return n < 10 ? '0' + n : '' + n; }
+        function span(ms) {
+          var s = Math.floor(Math.max(0, ms) / 1000);
+          var d = Math.floor(s / 86400); s -= d * 86400;
+          var h = Math.floor(s / 3600); s -= h * 3600;
+          var m = Math.floor(s / 60); s -= m * 60;
+          return (d > 0 ? d + '日 ' : '') + pad(h) + ':' + pad(m) + ':' + pad(s);
+        }
+        function tick() {
+          var now = Date.now();
+          if (clock) clock.textContent = f.format(new Date(now));
+          for (var i = 0; i < timers.length; i++) {
+            var el = timers[i];
+            var from = el.getAttribute('data-from');
+            if (from) { el.textContent = span(now - Number(from)); continue; }
+            var left = Number(el.getAttribute('data-until')) - now;
+            el.textContent = left <= 0 ? 'まもなく' : span(left);
+          }
+        }
+        tick();
+        setInterval(tick, 1000);
+      })();
+    </script>
   </body>
 </html>
