@@ -12,6 +12,12 @@ interface Props {
   ogType?: string;
   /** そのページ固有の構造化データ。会社とサイトの分は下で毎ページ出している */
   jsonld?: unknown[];
+  /**
+   * 地の明暗。既定は黒。
+   * ⚠ 数字を出すページは必ず 'dark'。上の青と下の黄は、白地では字に置けない。
+   *    白地にするのは、数字を出さない読むページだけ。
+   */
+  theme?: 'dark' | 'light';
 }
 
 const {
@@ -20,7 +26,9 @@ const {
   noindex = false,
   ogType = 'website',
   jsonld = [],
+  theme = 'dark',
 } = Astro.props;
+const light = theme === 'light';
 
 const SITE = 'https://ann1678.com';
 const path = Astro.url.pathname;
@@ -61,7 +69,7 @@ const website = {
 };
 const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org, website, ...jsonld] });
 ---
-<html lang="ja">
+<html lang="ja" data-theme={theme}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -133,7 +141,11 @@ const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org,
       </div>
     </header>
 
+    {light && <div class="curve to-light" aria-hidden="true"></div>}
+
     <main><div class="wrap"><slot /></div></main>
+
+    {light && <div class="curve to-dark" aria-hidden="true"></div>}
 
     <footer class="site">
       <div class="wrap">
