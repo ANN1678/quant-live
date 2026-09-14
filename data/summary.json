@@ -52,10 +52,10 @@
     "threshold_t": 2.36,
     "trades": 0
   },
-  "generated_at": "2026-09-14T18:05:46+09:00",
+  "generated_at": "2026-09-14T19:05:37+09:00",
   "horizon_hours": 72,
   "last_run": {
-    "at": "2026-09-14T18:05:46+09:00",
+    "at": "2026-09-14T19:05:37+09:00",
     "failed_pairs": []
   },
   "legacy": {
@@ -95,8 +95,8 @@
       }
     }
   },
-  "made": 130,
-  "made_all_models": 150,
+  "made": 132,
+  "made_all_models": 152,
   "model": "tsmom-vote-v2",
   "open_positions": [
     {
