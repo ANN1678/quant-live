@@ -1,11 +1,14 @@
 ---
 import Base from '../layouts/Base.astro';
-import { summary, backtest, } from '../lib/data';
+import { summary, backtest, PAIR_LABEL, pct } from '../lib/data';
 const a = { fee_pct: 0.12, slippage_pct: 0.05, round_trip_cost_pct: 0.34, position_pct: 10, ...(backtest?.assumptions ?? {}), ...(summary?.assumptions ?? {}) };
 const feeBy = a.fee_pct_by_pair ?? { btc_jpy: 0.1, eth_jpy: 0.12 };
 const marginDaily = a.margin_daily_pct ?? 0.04;
 const lookback = (a.lookback_days ?? [7, 14, 28]).join('・');
 const bt = backtest?.pairs ?? null;
+// ⚠ いまのモデル・規則と食い違う当てはめは出さない。別のモデルの成績を、いまの成績の隣に並べてしまう
+const btSame = !backtest || !summary?.model || (backtest.model === summary.model && backtest.rule === summary.rule);
+const sign = (n: number | null | undefined) => (n === null || n === undefined ? 'flat' : n > 0 ? 'up' : n < 0 ? 'down' : 'flat');
 const horizons = [
   { h: '1時間', move: '0.25%', need: '118%', note: '100%当てても手数料に届きません' },
   { h: '4時間', move: '0.53%', need: '82%', note: '' },
@@ -123,8 +126,41 @@ const crumbs = {
     <p>手順と数字は全部リポジトリの <a href="https://github.com/ANN1678/quant-live/tree/main/research">research/</a> にあります。候補を書いた側の記録も、審査で落ちた理由も、そのまま置いてあります。</p>
   </section>
 
+  {backtest && btSame && (
+    <section class="section">
+      <span class="eyebrow"><span class="n">07</span> ／ 過去で試す</span>
+      <h2>過去の相場で試した結果</h2>
+      <div class="note warn">
+        ここから下は<strong>事前に公開した予測ではありません。</strong>いまのモデル <span class="mono">{backtest.model}</span> と規則 <span class="mono">{backtest.rule}</span> を、過去{backtest.days}日の相場に後から通しただけです。後から試した成績は、これから出す予測より良く見えるのがふつうです。<a href="/">実況</a>に出ている数字とは別のものとして読んでください。過去には売り買いの注文の記録が残っていないので、その1時間の終値で売買したことにしています。
+      </div>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>銘柄</th><th>予測</th><th>的中率</th><th>売買</th><th>1回あたり平均</th><th>中央値</th><th>t</th><th>ずっと買ったまま</th><th>最大下落</th></tr></thead>
+          <tbody>
+            {Object.values(backtest.pairs).map((p: any) => (
+              <tr>
+                <td>{PAIR_LABEL[p.pair] ?? p.pair}</td>
+                <td class="num">{p.judged}</td>
+                <td class="num">{p.hit_rate}%<span class="muted">72件おき {p.hit_rate_nonoverlap ?? '—'}%</span></td>
+                <td class="num">{p.trades}</td>
+                <td class={`num ${sign(p.avg_net_pct)}`}>{pct(p.avg_net_pct, 3)}</td>
+                <td class="num">{pct(p.median_net_pct, 3)}</td>
+                <td class="num">{p.t ?? '—'}</td>
+                <td class="num">{pct(p.always_long?.avg_net_pct, 3)}</td>
+                <td class="num">{p.max_drawdown_pct}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="fine" style="margin-top:20px">
+        的中率の横の小さい数字は、72件おきに1件だけ取って数え直したものです。表の右のほうに、予測を使わず<strong>ずっと買ったまま持ち続けた</strong>成績も並べました。上がり相場なら、これだけでも資金は増える。<strong>予測で増えたぶんは、2つの差です。</strong>この4年には、モデルを選ぶのに使った期間が入っています。だからこの表を見て勝てるとは言えません。ここで見るのは、どんなクセがあるかだけです。本当に効いているかは、<a href="/">実況</a>の検査で決めます。
+      </p>
+    </section>
+  )}
+
   <section class="section prose">
-    <span class="eyebrow"><span class="n">07</span> ／ 検証</span>
+    <span class="eyebrow"><span class="n">08</span> ／ 検証</span>
     <h2>書き換えていないことの確かめ方</h2>
     <p>予測は、結果が出る前にファイルへ書き足して、そのままリポジトリへ記録しています。的中率を上げるために外れた予測を消すことは、できない形にしてあります。</p>
     <p>あとから書き換えれば、履歴に残る。</p>

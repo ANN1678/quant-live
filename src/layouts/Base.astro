@@ -105,11 +105,13 @@ const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org,
     <link rel="alternate" type="application/rss+xml" title="ANNの手記" href={`${SITE}/rss.xml`} />
     <link rel="sitemap" type="application/xml" href={`${SITE}/sitemap.xml`} />
 
+    {/* 書体は2つだけ。Jost（英数・ロゴと同じ）と Zen Kaku Gothic New（かな漢字）。
+        ⚠ 200 を落とさない。見出しはこの太さで組んでいる（styles/global.css の正本）。 */}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Zen+Kaku+Gothic+New:wght@300;400;500&display=swap"
     />
 
     <script type="application/ld+json" set:html={graph} is:inline />
@@ -154,14 +156,17 @@ const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org,
       </div>
     </footer>
 
-    {/* 秒で動くものを、ここで全部まとめて回す。
-        黒帯の時計と、data-from（そこから何が経ったか）と data-until（そこまであと何か）。
+    {/* 秒で動くものを、ここで全部まとめて回す。黒帯の時計と、data-count の枠。
+        data-count は「その時刻まであと何か」を数えて、過ぎたら「どれだけ過ぎたか」へ折り返す。
+        折り返したときは札も data-label-late の言葉に差し替える。
+        ⚠ 「まもなく」で止めない。止めると、1分の遅れも4日の遅れも同じ字面になる（2026-09-17）。
+        ⚠ 札の言葉はここに書かない。ページ側の data 属性から取る。文言の正本をJSへ持ち込まないため。
         ⚠ setInterval は1本だけにする。要素ごとに立てない。 */}
     <script is:inline>
       (function () {
         var clock = document.getElementById('clock');
-        var timers = document.querySelectorAll('[data-from],[data-until]');
-        if (!clock && !timers.length) return;
+        var counts = document.querySelectorAll('[data-count]');
+        if (!clock && !counts.length) return;
 
         var f = new Intl.DateTimeFormat('ja-JP', {
           timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
@@ -177,12 +182,20 @@ const graph = JSON.stringify({ '@context': 'https://schema.org', '@graph': [org,
         function tick() {
           var now = Date.now();
           if (clock) clock.textContent = f.format(new Date(now));
-          for (var i = 0; i < timers.length; i++) {
-            var el = timers[i];
-            var from = el.getAttribute('data-from');
-            if (from) { el.textContent = span(now - Number(from)); continue; }
-            var left = Number(el.getAttribute('data-until')) - now;
-            el.textContent = left <= 0 ? 'まもなく' : span(left);
+          for (var i = 0; i < counts.length; i++) {
+            var el = counts[i];
+            var v = el.querySelector('.v');
+            var k = el.querySelector('.kj');
+            if (!v) continue;
+            var left = Number(el.getAttribute('data-count')) - now;
+            var late = left <= 0;
+            v.textContent = span(late ? -left : left);
+            if (k) {
+              var label = el.getAttribute(late ? 'data-label-late' : 'data-label');
+              if (label && k.textContent !== label) k.textContent = label;
+            }
+            var state = late ? 'late' : 'ahead';
+            if (el.getAttribute('data-state') !== state) el.setAttribute('data-state', state);
           }
         }
         tick();

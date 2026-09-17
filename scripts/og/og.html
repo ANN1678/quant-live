@@ -1,42 +1,47 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8">
 <!-- og.png の版下。1200x630 で撮る。作り直し方は README の「共有画像」を見ること。
-     ⚠ サイトの正本 src/styles/global.css と同じ値で書く。ここだけ別の書体・太さにしない。 -->
+     ⚠ サイトの正本 src/styles/global.css と同じ値で書く。ここだけ別の書体・太さにしない。
+     ⚠ 2026-09-17に teatora.jp を手本にした組みへ入れ替えた。
+        地は黒（開いた先の実況のページと同じ）。見出しはウェイト200。札は字送り .3em の大文字。 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=block">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400&family=Zen+Kaku+Gothic+New:wght@300;400&display=block">
 <style>
   :root{
-    --paper:#fbfbfa; --ink:#0a0a0a; --muted:#6b6a65; --rule:rgba(10,10,10,.13);
-    --sans:"Inter","Zen Kaku Gothic New","Hiragino Sans",sans-serif;
+    --paper:#000000; --ink:#ffffff; --muted:#999999; --rule:rgba(255,255,255,.22);
+    --sans:"Jost","Zen Kaku Gothic New","Hiragino Sans",sans-serif;
+    --track:.3em;
   }
   *{box-sizing:border-box;margin:0}
   html,body{width:1200px;height:630px}
   body{
     background:var(--paper); color:var(--ink); font-family:var(--sans);
     display:flex; flex-direction:column; padding:56px 68px 60px;
+    letter-spacing:.02em;
     -webkit-font-smoothing:antialiased;
   }
   .top{display:flex;align-items:center;justify-content:space-between;padding-bottom:26px;border-bottom:1px solid var(--rule)}
-  .brand{display:flex;align-items:center;gap:14px;font-weight:700;font-size:28px;letter-spacing:.05em}
-  .url{font-size:17px;letter-spacing:.09em;color:var(--muted)}
-  h1{font-size:66px;font-weight:500;line-height:1.16;letter-spacing:-.028em;margin-top:56px}
-  .lead{margin-top:24px;font-size:22px;line-height:1.7;color:var(--ink)}
-  .stats{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);column-gap:44px}
-  .stat{border-top:1px solid var(--ink);padding-top:14px}
-  .stat .v{font-size:30px;line-height:1.2;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-  .stat .k{margin-top:6px;font-size:16px;color:var(--muted)}
+  .brand{display:flex;align-items:center;gap:15px;font-weight:400;font-size:24px;letter-spacing:var(--track)}
+  .url{font-size:13px;letter-spacing:var(--track);color:var(--muted)}
+  h1{font-size:56px;font-weight:200;line-height:1.42;letter-spacing:-.03em;margin-top:64px}
+  .lead{margin-top:30px;font-size:19px;line-height:2;color:var(--ink)}
+  .stats{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);column-gap:48px}
+  .stat{position:relative;border-top:1px solid var(--ink);padding-top:18px}
+  .stat::before{content:'';position:absolute;left:0;top:0;width:1px;height:7px;background:var(--ink)}
+  .stat .v{font-size:28px;line-height:1.25;font-weight:200;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+  .stat .k{margin-top:10px;font-size:12px;color:var(--muted)}
 </style></head>
 <body>
   <div class="top">
     <div class="brand">
       <svg width="38" height="33" viewBox="0 0 100 88" aria-hidden="true">
         <mask id="m"><rect width="100" height="88" fill="#fff"/><path fill="#000" d="M44.51 44.6H55.61L54.949999999999996 41.6H45.199999999999996ZM50.0 34.94 53.36 42.74 53.42 43.61 56.269999999999996 50.0H60.29L50.0 27.830000000000002L39.74 50.0H43.73L46.64 43.43L46.699999999999996 42.65Z M43.18 57.0V71.1L27.85 55.95V78.0H31.330000000000002V63.9L46.66 79.05V57.0Z M67.67 57.0V71.1L52.34 55.95V78.0H55.82V63.9L71.15 79.05V57.0Z"/></mask>
-        <path fill="#0a0a0a" mask="url(#m)" d="M50 4 L96 84 L4 84 Z"/>
+        <path fill="#ffffff" mask="url(#m)" d="M50 4 L96 84 L4 84 Z"/>
       </svg>
       ANN
     </div>
-    <div class="url">ann1678.com</div>
+    <div class="url">ANN1678.COM</div>
   </div>
 
   <h1>相場を予測して、<br>仮想で売買しています。</h1>

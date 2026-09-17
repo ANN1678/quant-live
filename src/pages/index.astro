@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import Spark from '../components/Spark.astro';
 import GateScale from '../components/GateScale.astro';
 import Equity from '../components/Equity.astro';
-import { summary, market, backtest, equity, results, DIRECTION_LABEL, PAIR_LABEL, jst, pct, yen } from '../lib/data';
+import { summary, market, equity, results, DIRECTION_LABEL, PAIR_LABEL, jst, pct, yen } from '../lib/data';
 
 const gate = summary?.gate ?? null;
 const pred = summary?.predictions?.all ?? null;
@@ -11,7 +11,6 @@ const trade = summary?.trading?.all ?? null;
 const pairs = Object.entries(market?.pairs ?? {}) as [string, any][];
 const open = pairs.map(([k, v]) => v.position).filter(Boolean);
 const recent = results.filter((r) => !summary?.model || r.model === summary.model).sort((a, b) => b.target_t - a.target_t).slice(0, 12);
-const btSame = !backtest || !summary?.model || (backtest.model === summary.model && backtest.rule === summary.rule);
 const hasAvg = gate?.avg_net_pct !== null && gate?.avg_net_pct !== undefined;
 const perPair = Object.entries(gate?.per_pair ?? {}) as [string, any][];
 const sign = (n: number | null | undefined) => (n === null || n === undefined ? 'flat' : n > 0 ? 'up' : n < 0 ? 'down' : 'flat');
@@ -21,12 +20,15 @@ const isCurrent = (p: any) => p.model === summary?.model && p.rule === summary?.
 // まだ1件も終わっていないとき、いつ最初の1件が出るかを言うために使う。
 // ⚠ 前の規則の分を拾わない。拾うと、数えない売買の期限を「最初の1件」と書いてしまう（2026-09-13）
 const firstClose = open.filter(isCurrent).map((p: any) => p.close_at).sort()[0] ?? null;
-// 秒で動かす2つ。どちらもエンジンが書いた時刻から出す
+// ヒーローの2枠。どちらも「次に何が起きるか」を出す。エンジンの側の経過時間は出さない
 const lastRunT = summary?.generated_at ? Date.parse(summary.generated_at) : null;
-const nextJudge = ((summary?.pending ?? []) as any[])
-  .map((p) => ({ pair: p.pair, at: p.target_at, t: Date.parse(p.target_at) }))
-  .filter((p) => Number.isFinite(p.t))
-  .sort((a, b) => a.t - b.t)[0] ?? null;
+// 次にエンジンが回る時刻。合図は Xserver の cron が毎時5分に出している（README の「仕組み」）。
+// ⚠ 「いまから次の5分」で出さない。エンジンが止まっても1時間以内の数字が出て、止まったことが隠れる。
+//    最後に回った時刻の「次の時」の5分で出す。止まれば、そのぶんマイナスになって表に出る。
+// ⚠ setMinutes(0,0,0) で丸めない。組む機械の時間帯で結果が変わる（Actionsは協定世界時・手元は日本時間）。
+//    日本時間は正時ちょうどのずれなので、エポックを時間で床に落とせば、どちらで組んでも同じ時刻になる。
+const nextRunT = lastRunT === null ? null
+  : Math.floor(lastRunT / 3600000) * 3600000 + 3600000 + 5 * 60000;
 // 相場の線の両端の日時と、線の色。色は線の端から端で決める（上の「24時間で」とは期間が違う）。
 // 足の t は始まりの時刻で、終値はその1時間後の値なので、両端とも1時間足す
 const lineSpan = (cs: any[]) => cs.length === 0
@@ -44,21 +46,37 @@ const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k])
     <h1>仮想通貨で勝てる<br />モデルをつくる。</h1>
     <p class="lead">モデルが本物なら、手数料を引いた後でも資金は増えます。増えたかどうかを、400回ぶん数えます。まぐれと区別がつくほどプラスなら、そこでリアルに移る。当たった回も外した回も、消さずに出します。</p>
 
-    <div class="stats c2 ticks">
-      {lastRunT && (
-        <div class="stat">
-          <div class="kj">最終更新から</div>
-          <div class="v tv" data-from={lastRunT}>--:--:--</div>
-          <div class="n">エンジンは1時間ごとに回ります。回るたびに、このページを組み直します</div>
+    {/* ⚠ 玉は1銘柄につき1つまでなので、この列は最大3つになる。2つ持っているときだけ c3 にする */}
+    <div class={`stats ${open.length > 1 ? 'c3' : 'c2'} ticks`}>
+      {nextRunT && (
+        <div
+          class="stat"
+          data-count={nextRunT}
+          data-label="次に数字が入れ替わるまで"
+          data-label-late="予定より遅れています"
+        >
+          <div class="kj">次に数字が入れ替わるまで</div>
+          <div class="v tv">--:--:--</div>
+          <div class="n">エンジンは毎時5分に回ります。回るたびに、このページの数字を全部組み直します。最後に回ったのは {jst(summary?.generated_at)} です</div>
         </div>
       )}
-      {nextJudge && (
+      {open.length === 0 ? (
         <div class="stat">
-          <div class="kj">次の判定まで</div>
-          <div class="v tv" data-until={nextJudge.t}>--:--:--</div>
-          <div class="n">{jst(nextJudge.at)}に、{PAIR_LABEL[nextJudge.pair] ?? nextJudge.pair}の予測を答え合わせします</div>
+          <div class="kj">いま買っているもの</div>
+          <div class="v long">何も買っていません</div>
+          <div class="n">下がる、または決めきれない、と読んだときは買わないからです。次に決めるのは、次の1時間が終わったときです</div>
         </div>
-      )}
+      ) : open.map((p: any) => (
+        <div class="stat">
+          <div class="kj">いま買っているもの　{PAIR_LABEL[p.pair] ?? p.pair}</div>
+          <div class={`v ${sign(p.unrealized_pct)}`}>{pct(p.unrealized_pct, 2)}</div>
+          {isCurrent(p) ? (
+            <div class="n">{yen(p.entry)}円で買ったことにしています。この損得は、売るまで確定しません。{jst(p.close_at)}に、売るか持ち続けるかを決めます{p.seg > 1 ? `（${p.seg}回目の持ち越し）` : ''}</div>
+          ) : (
+            <div class="n">{yen(p.entry)}円で買ったことにしています。前の規則で買った分なので、{jst(p.close_at)}に売ります。1回あたりの損益には数えません</div>
+          )}
+        </div>
+      ))}
     </div>
   </div>
 
@@ -124,31 +142,9 @@ const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k])
     </div>
   </section>
 
-  <section class="section">
-    <span class="eyebrow"><span class="n">03</span> ／ 取引</span>
-    <h2>いま買っているもの</h2>
-    {open.length === 0 ? (
-      <p class="empty">いまは何も買っていません。下がる、または決めきれない、と読んだときは買わないからです。次に決めるのは、次の1時間が終わったときです。</p>
-    ) : (
-      <div class="stats c2">
-        {open.map((p: any) => (
-          <div class="stat">
-            <div class="kj">{PAIR_LABEL[p.pair] ?? p.pair}　<span class={`tag ${p.direction}`}>{DIRECTION_LABEL[p.direction]}</span></div>
-            <div class={`v ${sign(p.unrealized_pct)}`}>{pct(p.unrealized_pct, 2)}</div>
-            {isCurrent(p) ? (
-              <div class="n">{yen(p.entry)}円で買ったことにしています。{jst(p.close_at)}に、売るか持ち続けるかを決めます{p.seg > 1 ? `（${p.seg}回目の持ち越し）` : ''}</div>
-            ) : (
-              <div class="n">{yen(p.entry)}円で買ったことにしています。前の規則で買った分なので、{jst(p.close_at)}に売ります。1回あたりの損益には数えません。</div>
-            )}
-          </div>
-        ))}
-      </div>
-    )}
-    <p class="fine" style="margin-top:24px">いま出ている損得は、まだ確定していない。売った時点で記録に入ります。</p>
-  </section>
 
   <section class="section">
-    <span class="eyebrow"><span class="n">04</span> ／ 相場</span>
+    <span class="eyebrow"><span class="n">03</span> ／ 相場</span>
     <h2>ビットコインとイーサリアムの値段</h2>
     <div class="stats c2">
       {pairs.map(([key, v]) => (
@@ -168,7 +164,7 @@ const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k])
   </section>
 
   <section class="section">
-    <span class="eyebrow"><span class="n">05</span> ／ 成績</span>
+    <span class="eyebrow"><span class="n">04</span> ／ 成績</span>
     <h2>いまの成績</h2>
     <p class="lead">的中率は、出した予測が当たった割合です。勝率は、実際に買った取引が手数料を引いた後でプラスだった割合です。予測は1時間ごとに出します。買うのは前の取引が終わっていて、上がると読んだときだけです。だから2つの件数はそろいません。</p>
     <div class="stats c4">
@@ -205,7 +201,7 @@ const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k])
   </section>
 
   <section class="section">
-    <span class="eyebrow"><span class="n">06</span> ／ 判定</span>
+    <span class="eyebrow"><span class="n">05</span> ／ 判定</span>
     <h2>直近の判定</h2>
     {recent.length === 0 ? (
       <p class="empty">まだ判定が終わった予測はありません。予測は72時間後に判定します。最初の判定は、記録を始めてから3日後に出ます。</p>
@@ -232,38 +228,6 @@ const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k])
     <p style="margin-top:30px"><a class="cta" href="/record/">記録をすべて見る<span class="arw" aria-hidden="true">→</span></a></p>
   </section>
 
-  {backtest && btSame && (
-    <section class="section">
-      <span class="eyebrow"><span class="n">07</span> ／ 過去で試す</span>
-      <h2>過去の相場で試した結果</h2>
-      <div class="note warn">
-        ここから下は<strong>事前に公開した予測ではありません。</strong>いまのモデル <span class="mono">{backtest.model}</span> と規則 <span class="mono">{backtest.rule}</span> を、過去{backtest.days}日の相場に後から通しただけです。後から試した成績は、これから出す予測より良く見えるのがふつうです。上の数字とは別のものとして読んでください。過去には売り買いの注文の記録が残っていないので、その1時間の終値で売買したことにしています。
-      </div>
-      <div class="scroll">
-        <table>
-          <thead><tr><th>銘柄</th><th>予測</th><th>的中率</th><th>売買</th><th>1回あたり平均</th><th>中央値</th><th>t</th><th>ずっと買ったまま</th><th>最大下落</th></tr></thead>
-          <tbody>
-            {Object.values(backtest.pairs).map((p: any) => (
-              <tr>
-                <td>{PAIR_LABEL[p.pair] ?? p.pair}</td>
-                <td class="num">{p.judged}</td>
-                <td class="num">{p.hit_rate}%<span class="muted">72件おき {p.hit_rate_nonoverlap ?? '—'}%</span></td>
-                <td class="num">{p.trades}</td>
-                <td class={`num ${sign(p.avg_net_pct)}`}>{pct(p.avg_net_pct, 3)}</td>
-                <td class="num">{pct(p.median_net_pct, 3)}</td>
-                <td class="num">{p.t ?? '—'}</td>
-                <td class="num">{pct(p.always_long?.avg_net_pct, 3)}</td>
-                <td class="num">{p.max_drawdown_pct}%</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p class="fine" style="margin-top:20px">
-        的中率の横の小さい数字は、72件おきに1件だけ取って数え直したものです。表の右のほうに、予測を使わず<strong>ずっと買ったまま持ち続けた</strong>成績も並べました。上がり相場なら、これだけでも資金は増える。<strong>予測で増えたぶんは、2つの差です。</strong>この4年には、モデルを選ぶのに使った期間が入っています。だからこの表を見て勝てるとは言えません。ここで見るのは、どんなクセがあるかだけです。本当に効いているかは、上の検査で決めます。
-      </p>
-    </section>
-  )}
 
   <p class="eyebrow" style="margin-top:72px">最後に更新したのは {jst(summary?.generated_at)}</p>
 </Base>
