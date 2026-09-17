@@ -482,9 +482,13 @@ tbody tr:hover td { background: rgba(255, 255, 255, .045); }
   color: var(--ink); white-space: nowrap;
 }
 /* 上下は明暗では分けない。片方が弱く見えて、記録の表で順位がついてしまう。
-   向きの3枠と同じ理屈で、**棒の位置**で分ける。上は上の辺、下は下の辺に置く。 */
-.tag.up { box-shadow: inset 0 2px 0 var(--ink); }
-.tag.down { box-shadow: inset 0 -2px 0 var(--ink); }
+   向きの3枠と同じ理屈で、**棒の位置**で分ける。上は上の辺、下は下の辺に置く。
+   ⚠ 2026-09-17に、字と棒にだけ色を入れた（CEO判断）。枠の罫は白のまま。
+      面を塗らないので、行が並んでも色の量は増えない。
+      判定済みの表では、この色と「動き」の色が隣り合う。同じ色なら的中、違う色なら外れ。
+      ⚠ 棒は外さない。色が見分けられなくても、位置だけで上下が読める。 */
+.tag.up { box-shadow: inset 0 2px 0 var(--up); color: var(--up); }
+.tag.down { box-shadow: inset 0 -2px 0 var(--down); color: var(--down); }
 .tag.none { border-color: var(--rule-soft); color: var(--faint); }
 
 /* ── 次へ進む枠 ──────────────────────────────────────────────────────── */
