@@ -42,9 +42,9 @@ const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k])
   description="ビットコインとイーサリアムが72時間後に上がるか下がるかを1時間ごとに予測し、そのとおりに売買したことにして損得を数えています。当たった回も外した回も全件そのまま公開。リアルに移行する条件も数字で書いています。"
 >
   <div class="hero">
-    <span class="eyebrow"><span class="n">LIVE</span> ／ 1時間ごとに書き換えています</span>
+    <span class="eyebrow"><span class="n">LIVE</span> ／ 1時間ごとに予測しています</span>
     <h1>仮想通貨で勝てる<br />モデルをつくる。</h1>
-    <p class="lead">モデルが本物なら、手数料を引いた後でも資金は増えます。増えたかどうかを、400回ぶん数えます。まぐれと区別がつくほどプラスなら、そこでリアルに移る。当たった回も外した回も、消さずに出します。</p>
+    <p class="lead">当てるだけでは足りません。手数料を引いた後で資金が増えて、はじめて勝ったと言えます。仮想の売買を400回までおこないます。まぐれでは説明できないほどプラスなら、そこでリアルトレードに移行します。当たった回も外した回も、消さずに出します。</p>
 
     {/* ⚠ 玉は1銘柄につき1つまでなので、この列は最大3つになる。2つ持っているときだけ c3 にする */}
     <div class={`stats ${open.length > 1 ? 'c3' : 'c2'} ticks`}>
@@ -52,12 +52,12 @@ const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k])
         <div
           class="stat"
           data-count={nextRunT}
-          data-label="次に数字が入れ替わるまで"
+          data-label="次の予測が出るまで"
           data-label-late="予定より遅れています"
         >
-          <div class="kj">次に数字が入れ替わるまで</div>
+          <div class="kj">次の予測が出るまで</div>
           <div class="v tv">--:--:--</div>
-          <div class="n">エンジンは毎時5分に回ります。回るたびに、このページの数字を全部組み直します。最後に回ったのは {jst(summary?.generated_at)} です</div>
+          <div class="n">エンジンは毎時5分に回って、ビットコインとイーサリアムの予測を1本ずつ出します。最後に回ったのは {jst(summary?.generated_at)} です</div>
         </div>
       )}
       {open.length === 0 ? (
