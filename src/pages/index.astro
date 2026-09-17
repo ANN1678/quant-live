@@ -29,6 +29,13 @@ const lastRunT = summary?.generated_at ? Date.parse(summary.generated_at) : null
 //    日本時間は正時ちょうどのずれなので、エポックを時間で床に落とせば、どちらで組んでも同じ時刻になる。
 const nextRunT = lastRunT === null ? null
   : Math.floor(lastRunT / 3600000) * 3600000 + 3600000 + 5 * 60000;
+// 玉を見直す回。⚠ 期限そのものを「決める時刻」と書かない。
+//    run.py が玉に手を触れるのは close_t < this_hour のときだけで、手仕舞い値は期限の足の終値。
+//    その足が閉じるのは1時間後なので、決まるのは期限の次の回（毎時5分）になる（2026-09-17）。
+const decideT = (q: any) => {
+  const t = Number(q.close_t ?? Date.parse(q.close_at));
+  return Number.isFinite(t) ? Math.floor(t / 3600000) * 3600000 + 3600000 + 5 * 60000 : null;
+};
 // 相場の線の両端の日時と、線の色。色は線の端から端で決める（上の「24時間で」とは期間が違う）。
 // 足の t は始まりの時刻で、終値はその1時間後の値なので、両端とも1時間足す
 const lineSpan = (cs: any[]) => cs.length === 0
@@ -71,9 +78,9 @@ const gateRows: [string, any][] = perPair.length > 0 ? perPair : pairs.map(([k])
           <div class="kj">いま買っているもの　{PAIR_LABEL[p.pair] ?? p.pair}</div>
           <div class={`v ${sign(p.unrealized_pct)}`}>{pct(p.unrealized_pct, 2)}</div>
           {isCurrent(p) ? (
-            <div class="n">{yen(p.entry)}円で買ったことにしています。この損得は、売るまで確定しません。{jst(p.close_at)}に、売るか持ち続けるかを決めます{p.seg > 1 ? `（${p.seg}回目の持ち越し）` : ''}</div>
+            <div class="n">{yen(p.entry)}円で買ったことにしています。この損得は、売るまで確定しません。{jst(decideT(p))}の回で、売るか持ち続けるかを決めます{p.seg > 1 ? `（${p.seg}回目の持ち越し）` : ''}。使う値は、{jst(p.close_at)}の足の終値です</div>
           ) : (
-            <div class="n">{yen(p.entry)}円で買ったことにしています。前の規則で買った分なので、{jst(p.close_at)}に売ります。1回あたりの損益には数えません</div>
+            <div class="n">{yen(p.entry)}円で買ったことにしています。前の規則で買った分なので、{jst(decideT(p))}の回で売ります。1回あたりの損益には数えません</div>
           )}
         </div>
       ))}
