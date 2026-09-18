@@ -92,16 +92,16 @@ const dataset = {
   </section>
 
   <section class="section">
-    <span class="eyebrow"><span class="n">03</span> ／ 仮想の売買　{done.length}件</span>
+    <span class="eyebrow"><span class="n">03</span> ／ 仮想の売買　{done.length}回</span>
     <h2>終わった売買</h2>
-    <p class="lead">72時間を1件として数えます。そのときもまだ上がると読んでいれば売らずに持ち続けるので、そういう回は売買していません。</p>
+    <p class="lead">72時間を1回ぶんとして数えます。そのときもまだ上がると読んでいれば売らずに持ち続けるので、そういう回は売っていません。それでも1回ぶんとして書きます。</p>
     <p class="fine">手数料がかかるのは、買った回と売った回だけです。</p>
     <p class="fine">買った値と売った値は、その1時間の終値です。取引所に残る値なので、誰が計算しても同じ数字になります。</p>
     <div class="scroll">
       <table>
         <thead><tr><th>終わった時刻</th><th>銘柄</th><th>予測</th><th>何回目</th><th>買った値</th><th>72時間後の値</th><th>値動きだけ</th><th>引いた費用</th><th>残った損得</th></tr></thead>
         <tbody>
-          {done.length === 0 && <tr><td colspan="9" class="muted">まだありません。1件目は買ってから72時間後に確定します。</td></tr>}
+          {done.length === 0 && <tr><td colspan="9" class="muted">まだありません。1回目は買ってから72時間後に確定します。</td></tr>}
           {done.slice(0, 200).map((t: any) => (
             <tr>
               <td class="ts">{jst(t.close_at)}</td>
@@ -119,7 +119,7 @@ const dataset = {
       </table>
     </div>
     {exec && (
-      <p class="fine">実行のずれ：{exec.n}件で、規則の値と、そのとき実際に板に並んでいた値の差は中央値{exec.gap_pct_median}%、最大{exec.gap_pct_max}%でした。記録が期限から遅れた時間は中央値{exec.late_minutes_median}分、最大{exec.late_minutes_max}分です。遅れるほど差が開きます。</p>
+      <p class="fine">実行のずれ：{exec.n}回で、規則の値と、そのとき実際に板に並んでいた値の差は中央値{exec.gap_pct_median}%、最大{exec.gap_pct_max}%でした。記録が期限から遅れた時間は中央値{exec.late_minutes_median}分、最大{exec.late_minutes_max}分です。遅れるほど差が開きます。</p>
     )}
   </section>
 
@@ -128,7 +128,7 @@ const dataset = {
       <span class="eyebrow"><span class="n">04</span> ／ 前のモデルと規則　{oldModels.join('・')}</span>
       <h2>前のモデルと規則の記録</h2>
       <p class="lead">モデルや売買の規則を替える前の記録です。消さずに、ここへ分けて残す。上の集計には入れていない。</p>
-      <p class="fine">long-carry-v2 までの2件は、売る値を「動いた時点の板」で決めていました。2026年9月11日に実行が4時間半おくれ、その遅れがそのまま損得に乗っています。<a href="/method/">やり方</a>に経緯を書いています。</p>
+      <p class="fine">long-carry-v2 までの2回は、売る値を「動いた時点の板」で決めていました。2026年9月11日に実行が4時間半おくれ、その遅れがそのまま損得に乗っています。<a href="/method/">やり方</a>に経緯を書いています。</p>
       {oldJudged.length > 0 && (
         <div class="scroll">
           <table>

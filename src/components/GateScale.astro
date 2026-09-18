@@ -19,10 +19,10 @@ const done = checkpoints.filter((c) => c <= trades).length;
 <div class="gate">
   <div class="gate-top">
     <span class="kj">{label}</span>
-    <span class="gate-n"><b class="num">{trades}</b><span class="unit"> ／ {max} 件</span></span>
+    <span class="gate-n"><b class="num">{trades}</b><span class="unit"> ／ {max} 回</span></span>
   </div>
 
-  <div class="gate-rail" role="img" aria-label={`${label}は${trades}件。検査は${checkpoints.join('・')}件のときで、${done}回済んでいます`}>
+  <div class="gate-rail" role="img" aria-label={`${label}は${trades}回。検査は${checkpoints.join('・')}回のときで、${done}回済んでいます`}>
     <span class="track"><i style={`width:${at(trades)}`}></i></span>
     {checkpoints.map((c) => (
       <span class={`cp${c <= trades ? ' past' : ''}${c === next ? ' next' : ''}`} style={`left:${at(c)}`}>
@@ -32,10 +32,10 @@ const done = checkpoints.filter((c) => c <= trades).length;
   </div>
 
   <p class="n">
-    {next ? `次の検査は ${next} 件です。` : done > 0 ? '検査は4回とも終わりました。' : ''}
+    {next ? `次の検査は ${next} 回です。` : done > 0 ? '検査は4回とも終わりました。' : ''}
     {t === null || t === undefined ? 'まだ t は出せません' : `いまの t は ${t}（合格は ${threshold} から）`}
   </p>
   {verdicts.length > 0 && (
-    <p class="n">{verdicts.map((d: any) => `${d.n}件で t ${d.t} ${d.passed ? '合格' : '不合格'}`).join('　')}</p>
+    <p class="n">{verdicts.map((d: any) => `${d.n}回で t ${d.t} ${d.passed ? '合格' : '不合格'}`).join('　')}</p>
   )}
 </div>
