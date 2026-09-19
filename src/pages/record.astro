@@ -10,9 +10,13 @@ const judged = results.filter(isCur).sort((a, b) => b.target_t - a.target_t);
 const done = trades.filter(isCurTrade).sort((a, b) => b.close_t - a.close_t);
 const open = predictions.filter((p) => !results.some((r) => r.id === p.id))
   .sort((a, b) => b.target_t - a.target_t);
-const oldJudged = results.filter((r) => !isCur(r)).sort((a, b) => b.target_t - a.target_t);
-const oldDone = trades.filter((t) => !isCurTrade(t)).sort((a, b) => b.close_t - a.close_t);
-const oldModels = [...new Set([...oldJudged.map((r) => r.model), ...oldDone.map((t) => `${t.model}／${t.rule ?? 'close-72h-v1'}`)])];
+// 記録は溜まり続ける。1つの表に出す数をここで決める。消すのではなく、出す数だけを切る。
+const MAX = 100;
+const OPEN_MAX = 40;
+const DATA = 'https://github.com/ANN1678/quant-live/blob/main/data';
+// 表から外した分の数。何が出ていないかを、読み手が数で分かるようにしておく。
+const oldJudgedCount = results.length - judged.length;
+const oldDoneCount = trades.length - done.length;
 const exec = summary?.execution ?? null;
 const sign = (n: number | null | undefined) => (n === null || n === undefined ? '' : n > 0 ? 'up' : n < 0 ? 'down' : '');
 // 記録そのものを構造化データにしておく。これが商品なので、検索側にも「何の記録か」を渡す。
@@ -32,14 +36,14 @@ const dataset = {
 };
 ---
 <Base
-  title="記録｜出した予測と結果の全件｜ANN"
-  description="判定を待っている予測、判定が終わった予測、仮想売買の全件を並べています。消したものも、書き換えたものもありません。順番は公開リポジトリの履歴が持っています。"
+  title="記録｜出した予測と結果｜ANN"
+  description="判定を待っている予測、判定が終わった予測、仮想売買を新しい順に並べています。消したものも、書き換えたものもありません。全件は公開リポジトリのデータにあります。"
   jsonld={[dataset]}
 >
   <div class="hero">
     <span class="eyebrow"><span class="n">RECORD</span> ／ 追記だけ</span>
     <h1>記録</h1>
-    <p class="lead">出した予測と、その結果を全部並べています。都合の悪い回も同じ場所にあります。消したものはない。書き換えたものも無い。順番は<a href="https://github.com/ANN1678/quant-live/tree/main/data">公開リポジトリの履歴</a>が持っています。</p>
+    <p class="lead">出した予測と、その結果を新しい順に並べています。都合の悪い回も同じ場所にあります。消したものはない。書き換えたものも無い。表に出すのは、新しいほうから{MAX}件までです。それより前の分と、前のモデルで出した分は<a href="https://github.com/ANN1678/quant-live/tree/main/data">公開リポジトリのデータ</a>に全部あります。順番はその履歴が持っています。</p>
   </div>
 
   <section class="section">
@@ -51,7 +55,7 @@ const dataset = {
         <thead><tr><th>出した時刻</th><th>銘柄</th><th>予測</th><th>モデル</th><th>7・14・28日の向き</th><th>予測したときの値</th><th>判定する時刻</th></tr></thead>
         <tbody>
           {open.length === 0 && <tr><td colspan="7" class="muted">ありません。</td></tr>}
-          {open.slice(0, 40).map((p: any) => (
+          {open.slice(0, OPEN_MAX).map((p: any) => (
             <tr>
               <td class="ts">{jst(p.made_at)}</td>
               <td>{PAIR_LABEL[p.pair] ?? p.pair}</td>
@@ -65,6 +69,9 @@ const dataset = {
         </tbody>
       </table>
     </div>
+    {open.length > OPEN_MAX && (
+      <p class="fine">判定待ちは、新しいほうから{OPEN_MAX}件を出します。残りの{open.length - OPEN_MAX}件も同じように登録してあり、<a href={`${DATA}/predictions.jsonl`}>予測のデータ</a>に並んでいます。</p>
+    )}
   </section>
 
   <section class="section">
@@ -75,7 +82,7 @@ const dataset = {
         <thead><tr><th>判定した時刻</th><th>銘柄</th><th>予測</th><th>予測したときの値</th><th>72時間後の値</th><th>動き</th><th>結果</th></tr></thead>
         <tbody>
           {judged.length === 0 && <tr><td colspan="7" class="muted">まだありません。予測は72時間後に判定します。</td></tr>}
-          {judged.slice(0, 200).map((r: any) => (
+          {judged.slice(0, MAX).map((r: any) => (
             <tr>
               <td class="ts">{jst(r.target_at)}</td>
               <td>{PAIR_LABEL[r.pair] ?? r.pair}</td>
@@ -89,6 +96,7 @@ const dataset = {
         </tbody>
       </table>
     </div>
+    <p class="fine">この表に出すのは、新しいほうから{MAX}件までです。{oldJudgedCount > 0 && `前のモデルで判定した${oldJudgedCount}件も、ここには入れていません。`}表から外しただけで、消してはいません。<a href={`${DATA}/results.jsonl`}>判定のデータ</a>に全件あります。</p>
   </section>
 
   <section class="section">
@@ -102,7 +110,7 @@ const dataset = {
         <thead><tr><th>終わった時刻</th><th>銘柄</th><th>予測</th><th>何回目</th><th>買った値</th><th>72時間後の値</th><th>値動きだけ</th><th>引いた費用</th><th>残った損得</th></tr></thead>
         <tbody>
           {done.length === 0 && <tr><td colspan="9" class="muted">まだありません。1回目は買ってから72時間後に確定します。</td></tr>}
-          {done.slice(0, 200).map((t: any) => (
+          {done.slice(0, MAX).map((t: any) => (
             <tr>
               <td class="ts">{jst(t.close_at)}</td>
               <td>{PAIR_LABEL[t.pair] ?? t.pair}</td>
@@ -118,61 +126,10 @@ const dataset = {
         </tbody>
       </table>
     </div>
+    <p class="fine">売買も新しいほうから{MAX}回までにします。{oldDoneCount > 0 && `前の規則で終わった${oldDoneCount}回は、表から外しました。`}外した分は<a href={`${DATA}/trades.jsonl`}>売買のデータ</a>で読めます。</p>
     {exec && (
       <p class="fine">実行のずれ：{exec.n}回で、規則の値と、そのとき実際に板に並んでいた値の差は中央値{exec.gap_pct_median}%、最大{exec.gap_pct_max}%でした。記録が期限から遅れた時間は中央値{exec.late_minutes_median}分、最大{exec.late_minutes_max}分です。遅れるほど差が開きます。</p>
     )}
   </section>
 
-  {(oldJudged.length > 0 || oldDone.length > 0) && (
-    <section class="section">
-      <span class="eyebrow"><span class="n">04</span> ／ 前のモデルと規則　{oldModels.join('・')}</span>
-      <h2>前のモデルと規則の記録</h2>
-      <p class="lead">モデルや売買の規則を替える前の記録です。消さずに、ここへ分けて残す。上の集計には入れていない。</p>
-      <p class="fine">long-carry-v2 までの2回は、売る値を「動いた時点の板」で決めていました。2026年9月11日に実行が4時間半おくれ、その遅れがそのまま損得に乗っています。<a href="/method/">やり方</a>に経緯を書いています。</p>
-      {oldJudged.length > 0 && (
-        <div class="scroll">
-          <table>
-            <thead><tr><th>判定した時刻</th><th>銘柄</th><th>モデル</th><th>予測</th><th>予測したときの値</th><th>72時間後の値</th><th>動き</th><th>結果</th></tr></thead>
-            <tbody>
-              {oldJudged.slice(0, 200).map((r: any) => (
-                <tr>
-                  <td class="ts">{jst(r.target_at)}</td>
-                  <td>{PAIR_LABEL[r.pair] ?? r.pair}</td>
-                  <td class="mono">{r.model}</td>
-                  <td><span class={`tag ${r.direction}`}>{DIRECTION_LABEL[r.direction]}</span></td>
-                  <td class="num">{yen(r.base_price)}</td>
-                  <td class="num">{yen(r.target_price)}</td>
-                  <td class={`num ${sign(r.move_pct)}`}>{pct(r.move_pct)}</td>
-                  <td>{r.hit === null ? '—' : r.hit ? '的中' : '外れ'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      {oldDone.length > 0 && (
-        <div class="scroll" style="margin-top:18px">
-          <table>
-            <thead><tr><th>終わった時刻</th><th>銘柄</th><th>モデル／規則</th><th>予測</th><th>買った値</th><th>売った値</th><th>値動きだけ</th><th>引いた費用</th><th>残った損得</th></tr></thead>
-            <tbody>
-              {oldDone.slice(0, 200).map((t: any) => (
-                <tr>
-                  <td class="ts">{jst(t.close_at)}</td>
-                  <td>{PAIR_LABEL[t.pair] ?? t.pair}</td>
-                  <td class="mono">{t.model}／{t.rule ?? 'close-72h-v1'}</td>
-                  <td><span class={`tag ${t.direction}`}>{DIRECTION_LABEL[t.direction]}</span></td>
-                  <td class="num">{yen(t.entry)}</td>
-                  <td class="num">{yen(t.exit)}</td>
-                  <td class={`num ${sign(t.gross_pct)}`}>{pct(t.gross_pct)}</td>
-                  <td class="num muted">{t.cost_pct ? `−${t.cost_pct}%` : '—'}</td>
-                  <td class={`num ${sign(t.net_pct)}`}>{pct(t.net_pct)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      <p class="fine" style="margin-top:12px">前のモデルで持っていたものを売るときは、いまの規則の費用で計算します。銘柄ごとの手数料と、DOWN で売っていた場合はその保有にかかる費用です。</p>
-    </section>
-  )}
 </Base>
