@@ -1,20 +1,21 @@
 {
   "btc_jpy": {
-    "close_at": "2026-09-20T21:00:00+09:00",
-    "close_t": 1789905600000,
+    "carried_at": "2026-09-20T22:05:10+09:00",
+    "close_at": "2026-09-23T21:00:00+09:00",
+    "close_t": 1790164800000,
     "direction": "up",
-    "entry": 11940203.0,
-    "entry_actual": 11957807.0,
+    "entry": 12615999.0,
+    "entry_actual": 12630153.0,
     "entry_late_minutes": 5,
     "id": "btc_jpy-1789646400000",
     "model": "tsmom-vote-v2",
-    "open_at": "2026-09-17T21:00:00+09:00",
-    "open_t": 1789646400000,
+    "open_at": "2026-09-20T21:00:00+09:00",
+    "open_t": 1789905600000,
     "opened_at": "2026-09-17T22:05:11+09:00",
     "pair": "btc_jpy",
     "quote_ok": true,
     "rule": "long-carry-v3",
-    "seg": 1,
+    "seg": 2,
     "signal_price": 11940203.0
   },
   "eth_jpy": {
