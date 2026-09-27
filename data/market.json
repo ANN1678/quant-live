@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-27T09:05:12+09:00",
+  "generated_at": "2026-09-27T09:20:35+09:00",
   "pairs": {
     "btc_jpy": {
       "candles": [
@@ -502,18 +502,18 @@
         "rule": "long-carry-v3",
         "seg": 4,
         "signal_price": 11940203.0,
-        "unrealized_pct": 0.212
+        "unrealized_pct": 0.13
       },
       "ticker": {
-        "buy": 13283068.0,
+        "buy": 13272269.0,
         "high": 13295000.0,
-        "last": 13281892.0,
+        "last": 13279000.0,
         "low": 13187477.0,
         "open": 13229059.0,
         "pair": "btc_jpy",
-        "sell": 13283721.0,
-        "t": 1790467523150,
-        "vol": 29.3118
+        "sell": 13272270.0,
+        "t": 1790468447519,
+        "vol": 29.259
       }
     },
     "eth_jpy": {
@@ -1017,18 +1017,18 @@
         "rule": "long-carry-v3",
         "seg": 5,
         "signal_price": 387976.0,
-        "unrealized_pct": 0.144
+        "unrealized_pct": 0.05
       },
       "ticker": {
-        "buy": 424169.0,
+        "buy": 423774.0,
         "high": 424571.0,
-        "last": 424170.0,
+        "last": 423768.0,
         "low": 419620.0,
-        "open": 423401.0,
+        "open": 423486.0,
         "pair": "eth_jpy",
-        "sell": 424170.0,
-        "t": 1790467531992,
-        "vol": 839.835
+        "sell": 423775.0,
+        "t": 1790468461393,
+        "vol": 827.5877
       }
     }
   }
