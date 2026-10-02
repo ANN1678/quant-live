@@ -19,22 +19,22 @@
     "signal_price": 11940203.0
   },
   "eth_jpy": {
-    "carried_at": "2026-09-29T23:05:19+09:00",
-    "close_at": "2026-10-02T22:00:00+09:00",
-    "close_t": 1790946000000,
+    "carried_at": "2026-10-02T23:05:25+09:00",
+    "close_at": "2026-10-05T22:00:00+09:00",
+    "close_t": 1791205200000,
     "direction": "up",
-    "entry": 429693.0,
-    "entry_actual": 428442.0,
+    "entry": 432818.0,
+    "entry_actual": 433514.0,
     "entry_late_minutes": 5,
     "id": "eth_jpy-1789390800000",
     "model": "tsmom-vote-v2",
-    "open_at": "2026-09-29T22:00:00+09:00",
-    "open_t": 1790686800000,
+    "open_at": "2026-10-02T22:00:00+09:00",
+    "open_t": 1790946000000,
     "opened_at": "2026-09-14T23:05:13+09:00",
     "pair": "eth_jpy",
     "quote_ok": true,
     "rule": "long-carry-v3",
-    "seg": 6,
+    "seg": 7,
     "signal_price": 387976.0
   }
 }
