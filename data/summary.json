@@ -82,10 +82,10 @@
     "threshold_t": 2.36,
     "trades": 16
   },
-  "generated_at": "2026-10-16T06:05:33+09:00",
+  "generated_at": "2026-10-16T07:00:10+09:00",
   "horizon_hours": 72,
   "last_run": {
-    "at": "2026-10-16T06:05:33+09:00",
+    "at": "2026-10-16T07:00:10+09:00",
     "failed_pairs": []
   },
   "legacy": {
@@ -329,12 +329,12 @@
       "up_judged": 1024
     },
     "last_30d": {
-      "down_hit_rate": 47.47,
-      "down_judged": 434,
-      "hit_rate": 49.79,
-      "hits": 716,
-      "judged": 1438,
-      "nonoverlap_hit_rate": 55.0,
+      "down_hit_rate": 47.22,
+      "down_judged": 432,
+      "hit_rate": 49.72,
+      "hits": 714,
+      "judged": 1436,
+      "nonoverlap_hit_rate": 50.0,
       "nonoverlap_judged": 20,
       "passed": 0,
       "up_hit_rate": 50.8,
@@ -343,14 +343,14 @@
     "last_7d": {
       "down_hit_rate": 51.79,
       "down_judged": 251,
-      "hit_rate": 38.92,
+      "hit_rate": 39.16,
       "hits": 130,
-      "judged": 334,
+      "judged": 332,
       "nonoverlap_hit_rate": 33.33,
       "nonoverlap_judged": 6,
       "passed": 0,
       "up_hit_rate": 0.0,
-      "up_judged": 83
+      "up_judged": 81
     },
     "per_pair": {
       "btc_jpy": {
