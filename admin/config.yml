@@ -1,0 +1,33 @@
+# 手記を書くための編集画面の設定。
+# 入口は /admin/ です。ログインは「Sign In with Token」を使います。
+# GitHub の個人アクセストークン（このリポジトリへの書き込み権限）を貼るだけで入れます。
+# 認証用のサーバーを別に立てなくて済むので、置き場所を増やしていません。
+
+backend:
+  name: github
+  repo: ANN1678/quant-live
+  branch: main
+
+media_folder: public/media
+public_folder: /media
+
+locale: ja
+
+collections:
+  - name: posts
+    label: 手記
+    label_singular: 手記
+    folder: content/posts
+    create: true
+    slug: '{{slug}}'
+    extension: md
+    format: frontmatter
+    preview_path: 'posts/{{slug}}'
+    summary: '{{title}}'
+    sortable_fields: [date, title]
+    fields:
+      - { label: 見出し, name: title, widget: string }
+      - { label: 日付, name: date, widget: datetime, picker_utc: false }
+      - { label: 一行の要約, name: summary, widget: string, required: false }
+      - { label: 下書きのまま置く, name: draft, widget: boolean, default: false }
+      - { label: 本文, name: body, widget: markdown }
