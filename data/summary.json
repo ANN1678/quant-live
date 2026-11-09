@@ -82,10 +82,10 @@
     "threshold_t": 2.36,
     "trades": 20
   },
-  "generated_at": "2026-11-09T20:05:43+09:00",
+  "generated_at": "2026-11-09T21:05:34+09:00",
   "horizon_hours": 72,
   "last_run": {
-    "at": "2026-11-09T20:05:43+09:00",
+    "at": "2026-11-09T21:05:34+09:00",
     "failed_pairs": []
   },
   "legacy": {
@@ -144,43 +144,11 @@
       }
     }
   },
-  "made": 2822,
-  "made_all_models": 2842,
+  "made": 2824,
+  "made_all_models": 2844,
   "model": "tsmom-vote-v2",
   "open_positions": [],
   "pending": [
-    {
-      "base_price": 12071876.0,
-      "confidence": null,
-      "direction": "down",
-      "id": "btc_jpy-1793962800000",
-      "made_at": "2026-11-06T21:05:09+09:00",
-      "model": "tsmom-vote-v2",
-      "pair": "btc_jpy",
-      "reason": {
-        "r14d_pct": -5.9022,
-        "r28d_pct": -8.4677,
-        "r7d_pct": -0.465,
-        "votes": -3
-      },
-      "target_at": "2026-11-09T20:00:00+09:00"
-    },
-    {
-      "base_price": 360505.0,
-      "confidence": null,
-      "direction": "down",
-      "id": "eth_jpy-1793962800000",
-      "made_at": "2026-11-06T21:05:09+09:00",
-      "model": "tsmom-vote-v2",
-      "pair": "eth_jpy",
-      "reason": {
-        "r14d_pct": -4.4605,
-        "r28d_pct": -9.2137,
-        "r7d_pct": 2.729,
-        "votes": -1
-      },
-      "target_at": "2026-11-09T20:00:00+09:00"
-    },
     {
       "base_price": 12075319.0,
       "confidence": null,
@@ -276,15 +244,47 @@
         "votes": -1
       },
       "target_at": "2026-11-09T23:00:00+09:00"
+    },
+    {
+      "base_price": 12005897.0,
+      "confidence": null,
+      "direction": "down",
+      "id": "btc_jpy-1793977200000",
+      "made_at": "2026-11-07T01:05:12+09:00",
+      "model": "tsmom-vote-v2",
+      "pair": "btc_jpy",
+      "reason": {
+        "r14d_pct": -6.3568,
+        "r28d_pct": -8.6079,
+        "r7d_pct": -1.6767,
+        "votes": -3
+      },
+      "target_at": "2026-11-10T00:00:00+09:00"
+    },
+    {
+      "base_price": 353117.0,
+      "confidence": null,
+      "direction": "down",
+      "id": "eth_jpy-1793977200000",
+      "made_at": "2026-11-07T01:05:12+09:00",
+      "model": "tsmom-vote-v2",
+      "pair": "eth_jpy",
+      "reason": {
+        "r14d_pct": -6.5531,
+        "r28d_pct": -10.5163,
+        "r7d_pct": 0.6857,
+        "votes": -1
+      },
+      "target_at": "2026-11-10T00:00:00+09:00"
     }
   ],
   "predictions": {
     "all": {
-      "down_hit_rate": 58.34,
-      "down_judged": 1594,
-      "hit_rate": 54.03,
-      "hits": 1447,
-      "judged": 2678,
+      "down_hit_rate": 58.4,
+      "down_judged": 1596,
+      "hit_rate": 54.07,
+      "hits": 1449,
+      "judged": 2680,
       "nonoverlap_hit_rate": 50.0,
       "nonoverlap_judged": 40,
       "passed": 0,
@@ -304,12 +304,12 @@
       "up_judged": 80
     },
     "last_7d": {
-      "down_hit_rate": 55.79,
+      "down_hit_rate": 56.4,
       "down_judged": 328,
-      "hit_rate": 54.79,
-      "hits": 183,
+      "hit_rate": 55.39,
+      "hits": 185,
       "judged": 334,
-      "nonoverlap_hit_rate": 16.67,
+      "nonoverlap_hit_rate": 33.33,
       "nonoverlap_judged": 6,
       "passed": 0,
       "up_hit_rate": 0.0,
@@ -317,11 +317,11 @@
     },
     "per_pair": {
       "btc_jpy": {
-        "down_hit_rate": 53.58,
-        "down_judged": 795,
-        "hit_rate": 50.11,
-        "hits": 671,
-        "judged": 1339,
+        "down_hit_rate": 53.64,
+        "down_judged": 796,
+        "hit_rate": 50.15,
+        "hits": 672,
+        "judged": 1340,
         "nonoverlap_hit_rate": 50.0,
         "nonoverlap_judged": 20,
         "passed": 0,
@@ -329,11 +329,11 @@
         "up_judged": 544
       },
       "eth_jpy": {
-        "down_hit_rate": 63.08,
-        "down_judged": 799,
-        "hit_rate": 57.95,
-        "hits": 776,
-        "judged": 1339,
+        "down_hit_rate": 63.12,
+        "down_judged": 800,
+        "hit_rate": 57.99,
+        "hits": 777,
+        "judged": 1340,
         "nonoverlap_hit_rate": 50.0,
         "nonoverlap_judged": 20,
         "passed": 0,
