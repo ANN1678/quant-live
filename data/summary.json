@@ -82,10 +82,10 @@
     "threshold_t": 2.36,
     "trades": 20
   },
-  "generated_at": "2026-11-11T17:05:47+09:00",
+  "generated_at": "2026-11-11T18:00:10+09:00",
   "horizon_hours": 72,
   "last_run": {
-    "at": "2026-11-11T17:05:47+09:00",
+    "at": "2026-11-11T18:00:10+09:00",
     "failed_pairs": []
   },
   "legacy": {
@@ -292,11 +292,11 @@
       "up_judged": 1084
     },
     "last_30d": {
-      "down_hit_rate": 64.29,
-      "down_judged": 1361,
-      "hit_rate": 60.92,
+      "down_hit_rate": 64.39,
+      "down_judged": 1359,
+      "hit_rate": 61.0,
       "hits": 876,
-      "judged": 1438,
+      "judged": 1436,
       "nonoverlap_hit_rate": 40.0,
       "nonoverlap_judged": 20,
       "passed": 0,
@@ -304,11 +304,11 @@
       "up_judged": 77
     },
     "last_7d": {
-      "down_hit_rate": 77.44,
-      "down_judged": 328,
-      "hit_rate": 76.05,
+      "down_hit_rate": 77.91,
+      "down_judged": 326,
+      "hit_rate": 76.51,
       "hits": 254,
-      "judged": 334,
+      "judged": 332,
       "nonoverlap_hit_rate": 66.67,
       "nonoverlap_judged": 6,
       "passed": 0,
