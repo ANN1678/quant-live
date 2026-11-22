@@ -82,10 +82,10 @@
     "threshold_t": 2.36,
     "trades": 20
   },
-  "generated_at": "2026-11-22T20:05:33+09:00",
+  "generated_at": "2026-11-22T21:05:38+09:00",
   "horizon_hours": 72,
   "last_run": {
-    "at": "2026-11-22T20:05:33+09:00",
+    "at": "2026-11-22T21:05:38+09:00",
     "failed_pairs": []
   },
   "legacy": {
@@ -144,43 +144,11 @@
       }
     }
   },
-  "made": 3446,
-  "made_all_models": 3466,
+  "made": 3448,
+  "made_all_models": 3468,
   "model": "tsmom-vote-v2",
   "open_positions": [],
   "pending": [
-    {
-      "base_price": 10225001.0,
-      "confidence": null,
-      "direction": "down",
-      "id": "btc_jpy-1795086000000",
-      "made_at": "2026-11-19T21:05:10+09:00",
-      "model": "tsmom-vote-v2",
-      "pair": "btc_jpy",
-      "reason": {
-        "r14d_pct": -19.5771,
-        "r28d_pct": -20.4002,
-        "r7d_pct": -12.1839,
-        "votes": -3
-      },
-      "target_at": "2026-11-22T20:00:00+09:00"
-    },
-    {
-      "base_price": 288981.0,
-      "confidence": null,
-      "direction": "down",
-      "id": "eth_jpy-1795086000000",
-      "made_at": "2026-11-19T21:05:10+09:00",
-      "model": "tsmom-vote-v2",
-      "pair": "eth_jpy",
-      "reason": {
-        "r14d_pct": -24.6336,
-        "r28d_pct": -23.4078,
-        "r7d_pct": -10.5225,
-        "votes": -3
-      },
-      "target_at": "2026-11-22T20:00:00+09:00"
-    },
     {
       "base_price": 10211616.0,
       "confidence": null,
@@ -276,15 +244,47 @@
         "votes": -3
       },
       "target_at": "2026-11-22T23:00:00+09:00"
+    },
+    {
+      "base_price": 10083437.0,
+      "confidence": null,
+      "direction": "down",
+      "id": "btc_jpy-1795100400000",
+      "made_at": "2026-11-20T01:05:16+09:00",
+      "model": "tsmom-vote-v2",
+      "pair": "btc_jpy",
+      "reason": {
+        "r14d_pct": -16.0194,
+        "r28d_pct": -21.3763,
+        "r7d_pct": -12.0159,
+        "votes": -3
+      },
+      "target_at": "2026-11-23T00:00:00+09:00"
+    },
+    {
+      "base_price": 284517.0,
+      "confidence": null,
+      "direction": "down",
+      "id": "eth_jpy-1795100400000",
+      "made_at": "2026-11-20T01:05:16+09:00",
+      "model": "tsmom-vote-v2",
+      "pair": "eth_jpy",
+      "reason": {
+        "r14d_pct": -19.9869,
+        "r28d_pct": -24.4981,
+        "r7d_pct": -11.4272,
+        "votes": -3
+      },
+      "target_at": "2026-11-23T00:00:00+09:00"
     }
   ],
   "predictions": {
     "all": {
-      "down_hit_rate": 69.12,
-      "down_judged": 2218,
-      "hit_rate": 62.08,
-      "hits": 2050,
-      "judged": 3302,
+      "down_hit_rate": 69.14,
+      "down_judged": 2220,
+      "hit_rate": 62.11,
+      "hits": 2052,
+      "judged": 3304,
       "nonoverlap_hit_rate": 58.33,
       "nonoverlap_judged": 48,
       "passed": 0,
@@ -317,11 +317,11 @@
     },
     "per_pair": {
       "btc_jpy": {
-        "down_hit_rate": 65.94,
-        "down_judged": 1107,
-        "hit_rate": 59.06,
-        "hits": 975,
-        "judged": 1651,
+        "down_hit_rate": 65.97,
+        "down_judged": 1108,
+        "hit_rate": 59.08,
+        "hits": 976,
+        "judged": 1652,
         "nonoverlap_hit_rate": 58.33,
         "nonoverlap_judged": 24,
         "passed": 0,
@@ -329,11 +329,11 @@
         "up_judged": 544
       },
       "eth_jpy": {
-        "down_hit_rate": 72.28,
-        "down_judged": 1111,
-        "hit_rate": 65.11,
-        "hits": 1075,
-        "judged": 1651,
+        "down_hit_rate": 72.3,
+        "down_judged": 1112,
+        "hit_rate": 65.13,
+        "hits": 1076,
+        "judged": 1652,
         "nonoverlap_hit_rate": 58.33,
         "nonoverlap_judged": 24,
         "passed": 0,
