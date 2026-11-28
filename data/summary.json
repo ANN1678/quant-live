@@ -82,10 +82,10 @@
     "threshold_t": 2.36,
     "trades": 20
   },
-  "generated_at": "2026-11-29T00:05:35+09:00",
+  "generated_at": "2026-11-29T01:05:34+09:00",
   "horizon_hours": 72,
   "last_run": {
-    "at": "2026-11-29T00:05:35+09:00",
+    "at": "2026-11-29T01:05:34+09:00",
     "failed_pairs": []
   },
   "legacy": {
@@ -144,8 +144,8 @@
       }
     }
   },
-  "made": 3740,
-  "made_all_models": 3760,
+  "made": 3742,
+  "made_all_models": 3762,
   "model": "tsmom-vote-v2",
   "open_positions": [],
   "pending": [
@@ -292,11 +292,11 @@
       "up_judged": 1084
     },
     "last_30d": {
-      "down_hit_rate": 76.96,
-      "down_judged": 1432,
-      "hit_rate": 76.63,
+      "down_hit_rate": 77.06,
+      "down_judged": 1430,
+      "hit_rate": 76.74,
       "hits": 1102,
-      "judged": 1438,
+      "judged": 1436,
       "nonoverlap_hit_rate": 80.0,
       "nonoverlap_judged": 20,
       "passed": 0,
@@ -304,11 +304,11 @@
       "up_judged": 6
     },
     "last_7d": {
-      "down_hit_rate": 60.48,
-      "down_judged": 334,
-      "hit_rate": 60.48,
-      "hits": 202,
-      "judged": 334,
+      "down_hit_rate": 60.24,
+      "down_judged": 332,
+      "hit_rate": 60.24,
+      "hits": 200,
+      "judged": 332,
       "nonoverlap_hit_rate": 66.67,
       "nonoverlap_judged": 6,
       "passed": 0,
